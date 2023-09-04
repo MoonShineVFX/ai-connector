@@ -113,6 +113,8 @@ class ControlNetUnit:
 
 
 def b64_img(image: Image) -> str:
+    if isinstance(image, str) and image.startswith("data:image/png;base64"):
+        return image
     return "data:image/png;base64," + raw_b64_img(image)
 
 
@@ -182,7 +184,8 @@ class WebUIApi:
         images = []
         if "images" in r.keys():
             images = [
-                Image.open(io.BytesIO(base64.b64decode(i))) for i in r["images"]
+                Image.open(io.BytesIO(base64.b64decode(i)))
+                for i in r["images"]
             ]
         elif "image" in r.keys():
             images = [Image.open(io.BytesIO(base64.b64decode(r["image"])))]
@@ -212,7 +215,8 @@ class WebUIApi:
         images = []
         if "images" in r.keys():
             images = [
-                Image.open(io.BytesIO(base64.b64decode(i))) for i in r["images"]
+                Image.open(io.BytesIO(base64.b64decode(i)))
+                for i in r["images"]
             ]
         elif "image" in r.keys():
             images = [Image.open(io.BytesIO(base64.b64decode(r["image"])))]
@@ -732,12 +736,16 @@ class WebUIApi:
         response = self.session.get(url=url)
         return response.json()
 
-    def custom_post(self, endpoint, payload={}, baseurl=False, use_async=False):
+    def custom_post(
+        self, endpoint, payload={}, baseurl=False, use_async=False
+    ):
         url = self.get_endpoint(endpoint, baseurl)
         if use_async:
             import asyncio
 
-            return asyncio.ensure_future(self.async_post(url=url, json=payload))
+            return asyncio.ensure_future(
+                self.async_post(url=url, json=payload)
+            )
         else:
             response = self.session.post(url=url, json=payload)
             return self._to_api_result(response)
@@ -895,7 +903,9 @@ class InstructPix2PixInterface:
             "randomize_cfg": randomize_cfg,
             "output_image_width": output_image_width,
         }
-        return self.api.custom_post("instruct-pix2pix/img2img", payload=payload)
+        return self.api.custom_post(
+            "instruct-pix2pix/img2img", payload=payload
+        )
 
 
 # https://github.com/AUTOMATIC1111/stable-diffusion-webui-rembg

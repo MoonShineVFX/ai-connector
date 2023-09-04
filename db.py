@@ -1,28 +1,34 @@
 import redis
 from dataclasses import dataclass
-from typing import Literal
+from typing import Literal, List
 from loguru import logger
 import json
-import os
+from settings import Settings
 
 
 JobType = Literal["TXT2IMG", "IMG2IMG", "EXTRA"]
-REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
-REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
-WORKER_NAME = os.environ.get("WORKER_NAME", "worker")
 
 
 @dataclass
 class Job:
     type: JobType
     payload: dict
-    model: str | None = None
+    format: Literal["JPEG", "PNG", "WEBP", "WEBP_LOSSLESS"] = "WEBP"
+    postprocess: List[dict] | None = None
     status: Literal["PENDING", "PROCESSING", "FAILED", "DONE"] = "PENDING"
+    webhook: str | None = None
 
 
 class RedisDatabase(object):
     def __init__(self):
-        self.__db = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=True)
+        logger.info(
+            f"Connecting to Redis: {Settings.REDIS_HOST}:{Settings.REDIS_PORT}"
+        )
+        self.__db = redis.Redis(
+            host=Settings.REDIS_HOST,
+            port=Settings.REDIS_PORT,
+            decode_responses=True,
+        )
         self.__key = "queue"
 
     def get_job(self) -> tuple[str, Job] | None:
@@ -35,19 +41,27 @@ class RedisDatabase(object):
             return None
 
         self.__db.hset(
-            job_id, mapping={"status": "PROCESSING", "worker": WORKER_NAME}
+            job_id,
+            mapping={"status": "PROCESSING", "worker": Settings.WORKER_NAME},
         )
 
+        # Convert postprocess to dict
+        if job_dict.get("postprocess"):
+            job_dict["postprocess"] = json.loads(job_dict["postprocess"])
+
+        # Convert payload to dict
         job_dict["payload"] = json.loads(job_dict["payload"])
+
         job = Job(**job_dict)
         return job_id, job
 
-    def done_job(self, job_id: str, data=None):
-        if data is None:
-            data = {}
-        self.__db.hset(
-            job_id, "status", "DONE", mapping={"result": json.dumps(data)}
-        )
+    def close_job(self, job_id: str, result=None, is_failed=False):
+        if result is None:
+            result = {}
 
-    def fail_job(self, job_id: str, message: str):
-        self.__db.hset(job_id, "status", "FAILED", mapping={"error": message})
+        self.__db.hset(
+            job_id,
+            "status",
+            "DONE" if not is_failed else "FAILED",
+            mapping={"result": json.dumps(result)},
+        )
