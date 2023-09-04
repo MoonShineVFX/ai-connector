@@ -4,8 +4,9 @@ from loguru import logger
 from bunny import upload_bunny
 import requests
 from payload import normalize_payload
+from settings import Settings
 
-api = webuiapi.WebUIApi()
+api = webuiapi.WebUIApi(port=Settings.A1111_PORT)
 db = RedisDatabase()
 
 if __name__ == "__main__":
