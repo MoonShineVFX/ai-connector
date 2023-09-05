@@ -5,21 +5,29 @@ from bunny import upload_bunny
 import requests
 from payload import normalize_payload
 from settings import Settings
+from postprocess import postprocess
+import traceback
 
 api = webuiapi.WebUIApi(port=Settings.A1111_PORT)
 db = RedisDatabase()
 
 if __name__ == "__main__":
     while True:
+        # Queue
         logger.info("Waiting for job...")
 
-        job = db.get_job()
-        if job is None:
-            logger.warning("No job found")
+        try:
+            job = db.get_job()
+            if job is None:
+                logger.warning("No job found")
+                continue
+
+            job_id, job = job
+        except:
+            logger.error(traceback.format_exc())
             continue
 
-        job_id, job = job
-
+        # Process
         logger.info(f"Processing [{job.type}]: {job_id}")
         try:
             normalize_payload(job.payload)
@@ -42,7 +50,16 @@ if __name__ == "__main__":
             if result is None:
                 raise Exception("No result returned")
 
-            # Upload to BunnyCDN
+            # Postprocess
+            if job.postprocess:
+                logger.info("Postprocessing...")
+                result.images = [
+                    postprocess(image, job.postprocess)
+                    for image in result.images
+                ]
+
+            # upload to BunnyCDN
+            logger.info("Uploading image...")
             result.images = upload_bunny(result.images, job.format)
 
             # Close job
@@ -58,7 +75,7 @@ if __name__ == "__main__":
             logger.info(f"Done job {job_id}")
 
         except Exception as e:
-            logger.error(f"Error: {e}")
+            logger.error(traceback.format_exc())
             result = {"error": str(e)}
             db.close_job(job_id, result, is_failed=True)
 

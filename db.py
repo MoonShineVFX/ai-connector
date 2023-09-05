@@ -1,22 +1,9 @@
 import redis
-from dataclasses import dataclass
-from typing import Literal, List
+
 from loguru import logger
 import json
 from settings import Settings
-
-
-JobType = Literal["TXT2IMG", "IMG2IMG", "EXTRA"]
-
-
-@dataclass
-class Job:
-    type: JobType
-    payload: dict
-    format: Literal["JPEG", "PNG", "WEBP", "WEBP_LOSSLESS"] = "WEBP"
-    postprocess: List[dict] | None = None
-    status: Literal["PENDING", "PROCESSING", "FAILED", "DONE"] = "PENDING"
-    webhook: str | None = None
+from defines import Job, PostProcess
 
 
 class RedisDatabase(object):
@@ -47,7 +34,10 @@ class RedisDatabase(object):
 
         # Convert postprocess to dict
         if job_dict.get("postprocess"):
-            job_dict["postprocess"] = json.loads(job_dict["postprocess"])
+            job_dict["postprocess"] = [
+                PostProcess(**process)
+                for process in json.loads(job_dict["postprocess"])
+            ]
 
         # Convert payload to dict
         job_dict["payload"] = json.loads(job_dict["payload"])

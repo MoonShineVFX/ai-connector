@@ -11,7 +11,6 @@ cuid_generator: Callable[[], str] = cuid_wrapper()
 
 
 def upload_bunny(images: [Image], fmt: str = "WEBP"):
-    logger.info("Uploading image...")
     image_urls = []
 
     is_lossless = fmt == "WEBP_LOSSLESS"
