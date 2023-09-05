@@ -30,4 +30,3 @@ if __name__ == "__main__":
             continue
 
         job.close()
-        job.emit_webhook()

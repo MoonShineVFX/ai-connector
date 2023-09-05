@@ -1,4 +1,11 @@
-from defines import JobType, PostProcess, JobStatus, ImageFormat, Settings
+from defines import (
+    JobType,
+    PostProcess,
+    JobStatus,
+    ImageFormat,
+    Settings,
+    Webhook,
+)
 import webuiapi
 from .payload import normalize_payload
 from loguru import logger
@@ -21,7 +28,7 @@ class Job:
         image_format: ImageFormat = "WEBP",
         process_list: List[PostProcess] = None,
         status: JobStatus = "PENDING",
-        webhook: str = None,
+        webhook: Webhook = None,
     ):
         self.on_close = on_close
 
@@ -112,10 +119,17 @@ class Job:
         logger.info(f"Emitting webhook: {self.webhook}")
         try:
             requests.post(
-                self.webhook,
+                self.webhook.url,
+                headers={
+                    "authorization": f"Bearer {self.webhook.token}",
+                }
+                if self.webhook.token
+                else {},
                 json={
                     "id": self.id,
-                    **self.result,
+                    "worker": Settings.WORKER_NAME,
+                    "status": self.status,
+                    "result": self.result,
                 },
                 timeout=3,
             )
@@ -123,6 +137,12 @@ class Job:
             logger.warning(f"Webhook failed: {e}")
 
     def close(self, is_failed=False):
+        self.status = "FAILED" if is_failed else "DONE"
+
         if not is_failed:
             logger.info(f"Job done.")
+        else:
+            logger.error(f"Job failed.")
+
+        self.emit_webhook()
         self.on_close(self, is_failed)

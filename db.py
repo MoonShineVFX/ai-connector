@@ -2,7 +2,7 @@ import redis
 
 from loguru import logger
 import json
-from defines import PostProcess, Settings
+from defines import PostProcess, Settings, Webhook
 from job import Job
 
 
@@ -32,15 +32,19 @@ class RedisDatabase(object):
             mapping={"status": "PROCESSING", "worker": Settings.WORKER_NAME},
         )
 
-        # Convert postprocess to dict
+        # Convert postprocess from dict
         if job_dict.get("postprocess"):
             job_dict["postprocess"] = [
                 PostProcess(**process)
                 for process in json.loads(job_dict["postprocess"])
             ]
 
-        # Convert payload to dict
+        # Convert payload from dict
         job_dict["payload"] = json.loads(job_dict["payload"])
+
+        # Convert webhook from dict
+        if job_dict.get("webhook"):
+            job_dict["webhook"] = Webhook(**json.loads(job_dict["webhook"]))
 
         job = Job(
             on_close=self.end_job,
@@ -58,6 +62,6 @@ class RedisDatabase(object):
         self.__db.hset(
             job.id,
             "status",
-            "DONE" if not is_failed else "FAILED",
+            job.status,
             mapping={"result": json.dumps(job.result)},
         )
