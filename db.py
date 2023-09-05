@@ -2,8 +2,8 @@ import redis
 
 from loguru import logger
 import json
-from settings import Settings
-from defines import Job, PostProcess
+from defines import PostProcess, Settings
+from job import Job
 
 
 class RedisDatabase(object):
@@ -18,7 +18,7 @@ class RedisDatabase(object):
         )
         self.__key = "queue"
 
-    def get_job(self) -> tuple[str, Job] | None:
+    def get_job(self) -> Job | None:
         blpop_tuple = self.__db.blpop([self.__key])
         job_id: str = blpop_tuple[1]
 
@@ -42,16 +42,22 @@ class RedisDatabase(object):
         # Convert payload to dict
         job_dict["payload"] = json.loads(job_dict["payload"])
 
-        job = Job(**job_dict)
-        return job_id, job
+        job = Job(
+            on_close=self.end_job,
+            _id=job_id,
+            _type=job_dict["type"],
+            payload=job_dict["payload"],
+            image_format=job_dict["format"],
+            process_list=job_dict.get("postprocess", []),
+            status=job_dict["status"],
+            webhook=job_dict.get("webhook", None),
+        )
+        return job
 
-    def close_job(self, job_id: str, result=None, is_failed=False):
-        if result is None:
-            result = {}
-
+    def end_job(self, job: Job, is_failed=False):
         self.__db.hset(
-            job_id,
+            job.id,
             "status",
             "DONE" if not is_failed else "FAILED",
-            mapping={"result": json.dumps(result)},
+            mapping={"result": json.dumps(job.result)},
         )
