@@ -113,8 +113,6 @@ class ControlNetUnit:
 
 
 def b64_img(image: Image) -> str:
-    if isinstance(image, str) and image.startswith("data:image/png;base64"):
-        return image
     return "data:image/png;base64," + raw_b64_img(image)
 
 
