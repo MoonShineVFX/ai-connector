@@ -22,12 +22,15 @@ class PostProcess:
 class Settings:
     REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
     REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
-    WORKER_NAME = os.environ.get("WORKER_NAME", platform.node())
+    WORKER_NAME = (
+        os.environ.get("WORKER_NAME", platform.node())
+        + "  v"
+        + os.environ.get("VERSION", "unknown")
+    )
     BUNNY_API_KEY = os.environ.get("BUNNY_API_KEY", "")
     BUNNY_UPLOAD_URL = os.environ.get("BUNNY_UPLOAD_URL", "")
     BUNNY_PUBLIC_URL = os.environ.get("BUNNY_PUBLIC_URL", "")
     A1111_PORT = os.environ.get("A1111_PORT", 7860)
-    VERSION = os.environ.get("VERSION", "unknown")
 
 
 @dataclass

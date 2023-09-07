@@ -31,7 +31,7 @@ class RedisDatabase(object):
             job_id,
             mapping={
                 "status": "PROCESSING",
-                "worker": f"{Settings.WORKER_NAME} v{Settings.VERSION}",
+                "worker": Settings.WORKER_NAME,
             },
         )
 
