@@ -21,8 +21,12 @@ REQUESTS_HEADERS = headers = {
 
 
 def normalize_image(image: str):
-    if image.startswith("data:image/png;base64"):
-        return image
+    if image.startswith("data:image"):
+        return Image.open(
+            BytesIO(
+                base64.b64decode(re.sub("^data:image/.+;base64,", "", image))
+            )
+        )
 
     if image.startswith("https://"):
         logger.debug(f"Downloading image: {image}")
@@ -32,13 +36,6 @@ def normalize_image(image: str):
         else:
             logger.error(f"Failed to download image: {response.status_code}")
             raise Exception(f"Invalid image requested: {image[:100]}")
-
-    if image.startswith("data:image"):
-        return Image.open(
-            BytesIO(
-                base64.b64decode(re.sub("^data:image/.+;base64,", "", image))
-            )
-        )
 
     raise Exception(f"Invalid image: {image[:100]}")
 
