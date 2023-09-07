@@ -29,7 +29,10 @@ class RedisDatabase(object):
 
         self.__db.hset(
             job_id,
-            mapping={"status": "PROCESSING", "worker": Settings.WORKER_NAME},
+            mapping={
+                "status": "PROCESSING",
+                "worker": f"{Settings.WORKER_NAME} v{Settings.VERSION}",
+            },
         )
 
         # Convert postprocess from dict

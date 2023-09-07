@@ -1,6 +1,10 @@
 FROM python:3.11
 ENV PYTHONUNBUFFERED 1
 
+ARG NOW
+
+ENV VERSION=$NOW
+
 RUN mkdir /app
 WORKDIR /app
 

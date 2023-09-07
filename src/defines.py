@@ -27,6 +27,7 @@ class Settings:
     BUNNY_UPLOAD_URL = os.environ.get("BUNNY_UPLOAD_URL", "")
     BUNNY_PUBLIC_URL = os.environ.get("BUNNY_PUBLIC_URL", "")
     A1111_PORT = os.environ.get("A1111_PORT", 7860)
+    VERSION = os.environ.get("VERSION", "unknown")
 
 
 @dataclass

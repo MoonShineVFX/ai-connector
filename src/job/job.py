@@ -138,7 +138,6 @@ class Job:
 
     def close(self, is_failed=False):
         self.status = "FAILED" if is_failed else "DONE"
-        print(self.webhook)
         if not is_failed:
             logger.info(f"Job done.")
         else:
