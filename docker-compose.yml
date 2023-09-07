@@ -3,5 +3,6 @@ services:
   connector:
     container_name: ai-connector
     build: .
+    network_mode: host
     env_file:
       - .env
