@@ -5,7 +5,11 @@ from PIL import Image
 from loguru import logger
 import re
 import base64
+import requests_cache
 
+
+# Cache requests for 7 days
+requests_cache.install_cache("cache", expire_after=60 * 60 * 24 * 7)
 
 REQUESTS_HEADERS = headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.69",
