@@ -17,6 +17,8 @@ def upload_bunny(image: Image, image_id: str, fmt: str = "WEBP"):
         "format": fmt,
         "lossless": is_lossless,
     }
+    if fmt == "JPEG":
+        image = image.convert("RGB")
     image.save(byte_io, **save_options)
     byte_io.seek(0)
 
