@@ -2,6 +2,6 @@ version: "3.8"
 services:
   connector:
     container_name: ai-connector
-    build: ./src
+    build: .
     env_file:
       - .env
