@@ -58,7 +58,7 @@ class RedisDatabase(object):
         )
         return job
 
-    def end_job(self, job: Job, is_failed=False):
+    def end_job(self, job: Job):
         self.__db.hset(
             job.id,
             "status",
