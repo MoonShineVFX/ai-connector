@@ -4,6 +4,7 @@ from loguru import logger
 import json
 from defines import PostProcess, Settings, Webhook
 from job import Job
+import traceback
 
 
 class RedisDatabase(object):
@@ -49,17 +50,29 @@ class RedisDatabase(object):
         if job_dict.get("webhook"):
             job_dict["webhook"] = Webhook(**json.loads(job_dict["webhook"]))
 
-        job = Job(
-            on_close=self.end_job,
-            _id=job_id,
-            _type=job_dict["type"],
-            payload=job_dict["payload"],
-            image_format=job_dict["format"],
-            process_list=job_dict.get("postprocess", []),
-            status=job_dict["status"],
-            webhook=job_dict.get("webhook", None),
-        )
-        return job
+        # Create job
+        try:
+            job = Job(
+                on_close=self.end_job,
+                _id=job_id,
+                _type=job_dict["type"],
+                payload=job_dict["payload"],
+                image_format=job_dict["format"],
+                process_list=job_dict.get("postprocess", []),
+                status=job_dict["status"],
+                webhook=job_dict.get("webhook", None),
+            )
+            return job
+        except Exception as e:
+            logger.error(f"Failed to create job: {job_id}")
+            logger.error(traceback.format_exc())
+            self.__db.hset(
+                job.id,
+                "status",
+                "FAILED",
+                mapping={"result": json.dumps({"error": str(e)})},
+            )
+            return None
 
     def end_job(self, job: Job):
         self.__db.hset(

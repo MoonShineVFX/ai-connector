@@ -14,7 +14,7 @@ if __name__ == "__main__":
         try:
             job = db.get_job()
             if job is None:
-                logger.warning("No job found")
+                logger.warning("No job found or failed to get job")
                 continue
         except:
             logger.error(traceback.format_exc())
