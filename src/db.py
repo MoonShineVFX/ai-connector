@@ -67,7 +67,7 @@ class RedisDatabase(object):
             logger.error(f"Failed to create job: {job_id}")
             logger.error(traceback.format_exc())
             self.__db.hset(
-                job.id,
+                job_id,
                 "status",
                 "FAILED",
                 mapping={"result": json.dumps({"error": str(e)})},
