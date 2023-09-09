@@ -188,16 +188,22 @@ class WebUIApi:
         elif "image" in r.keys():
             images = [Image.open(io.BytesIO(base64.b64decode(r["image"])))]
 
-        info = ""
+        info = {}
         if "info" in r.keys():
             try:
                 info = json.loads(r["info"])
             except:
-                info = r["info"]
+                info = {
+                    "info": r["info"],
+                }
         elif "html_info" in r.keys():
-            info = r["html_info"]
+            info = {
+                "html_info": r["html_info"],
+            }
         elif "caption" in r.keys():
-            info = r["caption"]
+            info = {
+                "caption": r["caption"],
+            }
 
         parameters = ""
         if "parameters" in r.keys():
