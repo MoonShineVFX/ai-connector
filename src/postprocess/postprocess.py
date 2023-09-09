@@ -6,13 +6,17 @@ import textwrap
 from typing import Callable
 from cuid2 import cuid_wrapper
 from .bunny import upload_bunny
+from .nsfw import nsfw_check
 
 
 cuid_generator: Callable[[], str] = cuid_wrapper()
 
 
 def postprocess(
-    image: PILImage, image_format: ImageFormat, process_list: List[PostProcess]
+    image: PILImage,
+    image_format: ImageFormat,
+    process_list: List[PostProcess],
+    dump_result: Callable[[str, any, bool], None],
 ):
     image_id = cuid_generator()
 
@@ -22,8 +26,10 @@ def postprocess(
                 image,
                 **process.args,
             )
+
         elif process.type == "WATERMARK":
             image = watermark(image)
+
         elif process.type == "LETTERBOX":
             new_image = letterbox(image)
             upload_bunny(
@@ -31,15 +37,18 @@ def postprocess(
                 image_id + "_letterbox",
                 fmt=image_format,
             )
+
         elif process.type == "UPLOAD":
             image_url = upload_bunny(
                 image,
                 image_id,
                 fmt=image_format,
             )
-            return image_url
+            dump_result("images", image_url, True)
 
-    raise Exception("No upload process found")
+        elif process.type == "NSFW_DETECTION":
+            nsfw_stat = nsfw_check(image)
+            dump_result("nsfw", nsfw_stat, True)
 
 
 def add_text(

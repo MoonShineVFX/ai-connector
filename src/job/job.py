@@ -41,8 +41,7 @@ class Job:
         self.webhook = webhook
         self.result = {}
 
-        self.images = []
-        self.info = {}
+        self.generate_images = []
 
         self.start_time = perf_counter()
 
@@ -53,14 +52,15 @@ class Job:
             self.process_list = process_list
 
         # Add default upload process
-        self.process_list.append(
+        self.process_list += [
             PostProcess(
                 type="UPLOAD",
                 args={
                     "fmt": self.image_format,
                 },
-            )
-        )
+            ),
+            PostProcess(type="NSFW_DETECTION"),
+        ]
 
         # Normalize payload
         normalize_payload(self.payload)
@@ -86,37 +86,34 @@ class Job:
             if api_result is None:
                 raise Exception("No result returned")
 
-            self.images = api_result.images
-            self.info = api_result.info
+            self.generate_images = api_result.images
+            self.dump_result("info", api_result.info)
 
             return True
 
         except Exception as e:
             logger.error(traceback.format_exc())
-            self.result = {"error": str(e)}
+            self.dump_result("error", str(e))
             self.close(is_failed=True)
             return False
 
     def postprocess(self):
         logger.info("Postprocessing...")
         try:
-            image_urls = [
-                postprocess(image, self.image_format, self.process_list)
-                for image in self.images
-            ]
+            for image in self.generate_images:
+                postprocess(
+                    image,
+                    self.image_format,
+                    self.process_list,
+                    self.dump_result,
+                )
 
-            self.result = {
-                "images": image_urls,
-                "info": {
-                    "generate_time": perf_counter() - self.start_time,
-                    **self.info,
-                },
-            }
+            self.dump_result("generate_time", perf_counter() - self.start_time)
             return True
 
         except Exception as e:
             logger.error(traceback.format_exc())
-            self.result = {"error": str(e)}
+            self.dump_result("error", str(e))
             self.close(is_failed=True)
             return False
 
@@ -142,6 +139,14 @@ class Job:
             )
         except Exception as e:
             logger.warning(f"Webhook failed: {e}")
+
+    def dump_result(self, key: str, value: any, is_append=False):
+        if is_append:
+            if key not in self.result:
+                self.result[key] = []
+            self.result[key].append(value)
+        else:
+            self.result[key] = value
 
     def close(self, is_failed=False):
         self.status = "FAILED" if is_failed else "DONE"

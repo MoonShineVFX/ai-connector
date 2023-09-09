@@ -75,9 +75,16 @@ class RedisDatabase(object):
             return None
 
     def end_job(self, job: Job):
+        try:
+            result = json.dumps(job.result)
+        except Exception as e:
+            logger.error(f"Failed to dump result: {job.id}")
+            logger.error(traceback.format_exc())
+            result = json.dumps({"error": str(e)})
+
         self.__db.hset(
             job.id,
             "status",
             job.status,
-            mapping={"result": json.dumps(job.result)},
+            mapping={"result": result},
         )
