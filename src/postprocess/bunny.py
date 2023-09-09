@@ -16,6 +16,8 @@ def upload_bunny(image: Image, image_id: str, fmt: str = "WEBP"):
     save_options = {
         "format": fmt,
         "lossless": is_lossless,
+        "quality": 90,
+        "optimize": True,
     }
     if fmt == "JPEG":
         image = image.convert("RGB")

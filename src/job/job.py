@@ -13,6 +13,7 @@ from typing import List, Callable
 import traceback
 from postprocess import postprocess
 import requests
+from time import perf_counter
 
 
 api = webuiapi.WebUIApi(port=Settings.A1111_PORT)
@@ -42,6 +43,8 @@ class Job:
 
         self.images = []
         self.info = {}
+
+        self.start_time = perf_counter()
 
         self.process_list: List[PostProcess]
         if process_list is None:
@@ -101,9 +104,13 @@ class Job:
                 postprocess(image, self.image_format, self.process_list)
                 for image in self.images
             ]
+
             self.result = {
                 "images": image_urls,
-                "info": self.info,
+                "info": {
+                    "generate_time": perf_counter() - self.start_time,
+                    **self.info,
+                },
             }
             return True
 
