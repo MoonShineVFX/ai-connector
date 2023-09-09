@@ -424,6 +424,9 @@ class WebUIApi:
         controlnet_units: List[ControlNetUnit] = [],
         use_deprecated_controlnet=False,
         use_async=False,
+        # 1.6
+        refiner_checkpoint=None,
+        refiner_switch_at=0,
     ):
         if sampler_name is None:
             sampler_name = self.default_sampler
@@ -478,6 +481,9 @@ class WebUIApi:
             "send_images": send_images,
             "save_images": save_images,
             "alwayson_scripts": alwayson_scripts,
+            # 1.6
+            "refiner_checkpoint": refiner_checkpoint,
+            "refiner_switch_at": refiner_switch_at,
         }
         if mask_image is not None:
             payload["mask"] = b64_img(mask_image)
