@@ -52,15 +52,17 @@ class Job:
             self.process_list = process_list
 
         # Add default upload process
-        self.process_list += [
+        self.process_list.append(
             PostProcess(
                 type="UPLOAD",
                 args={
                     "fmt": self.image_format,
                 },
-            ),
-            PostProcess(type="NSFW_DETECTION"),
-        ]
+            )
+        )
+        # Add nsfw detection process for image generation
+        if self.type in ["TXT2IMG", "IMG2IMG", "EXTRA"]:
+            self.process_list.append(PostProcess(type="NSFW_DETECTION"))
 
         # Normalize payload
         normalize_payload(self.payload)
@@ -80,6 +82,14 @@ class Job:
                 )
             elif self.type == "EXTRA":
                 api_result = api.extra_single_image(
+                    **self.payload,
+                )
+            elif self.type == "INTERROGATE":
+                api_result = api.interrogate(
+                    **self.payload,
+                )
+            elif self.type == "CONTROLNET_DETECT":
+                api_result = api.controlnet_detect(
                     **self.payload,
                 )
 

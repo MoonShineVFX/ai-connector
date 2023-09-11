@@ -7,7 +7,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-JobType = Literal["TXT2IMG", "IMG2IMG", "EXTRA"]
+JobType = Literal[
+    "TXT2IMG", "IMG2IMG", "EXTRA", "INTERROGATE", "CONTROLNET_DETECT"
+]
 JobStatus = Literal["PENDING", "PROCESSING", "FAILED", "DONE"]
 ImageFormat = Literal["JPEG", "PNG", "WEBP", "WEBP_LOSSLESS"]
 
@@ -26,7 +28,7 @@ class Settings:
     REDIS_PORT = os.environ.get("REDIS_PORT", 6379)
     WORKER_NAME = (
         os.environ.get("WORKER_NAME", platform.node())
-        + " | v"
+        + " | v:"
         + os.environ.get("VERSION", "unknown")
     )
     BUNNY_API_KEY = os.environ.get("BUNNY_API_KEY", "")
