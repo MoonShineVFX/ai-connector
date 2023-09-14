@@ -57,12 +57,18 @@ def normalize_payload(payload: dict):
     ):
         normalized_controlnet_units = []
         for controlnet_unit_dict in payload["controlnet_units"]:
-            if "input_image" in controlnet_unit_dict:
+            if (
+                "input_image" in controlnet_unit_dict
+                and controlnet_unit_dict["input_image"] is not None
+            ):
                 controlnet_unit_dict["input_image"] = normalize_image(
                     controlnet_unit_dict["input_image"]
                 )
 
-            if "mask" in controlnet_unit_dict:
+            if (
+                "mask" in controlnet_unit_dict
+                and controlnet_unit_dict["mask"] is not None
+            ):
                 controlnet_unit_dict["mask"] = normalize_image(
                     controlnet_unit_dict["mask"]
                 )
