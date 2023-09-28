@@ -8,3 +8,4 @@ cuid2~=2.0.0
 requests-cache==1.1.0
 nsfw_detector==1.1.1
 protobuf==3.20.*
+blurhash-python==1.2.1

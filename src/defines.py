@@ -17,7 +17,12 @@ ImageFormat = Literal["JPEG", "PNG", "WEBP", "WEBP_LOSSLESS"]
 @dataclass
 class PostProcess:
     type: Literal[
-        "ADD_TEXT", "WATERMARK", "LETTERBOX", "UPLOAD", "NSFW_DETECTION"
+        "ADD_TEXT",
+        "WATERMARK",
+        "LETTERBOX",
+        "UPLOAD",
+        "NSFW_DETECTION",
+        "BLURHASH",
     ]
     args: dict | None = None
 

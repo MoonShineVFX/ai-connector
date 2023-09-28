@@ -150,13 +150,21 @@ class Job:
         except Exception as e:
             logger.warning(f"Webhook failed: {e}")
 
-    def dump_result(self, key: str, value: any, is_append=False):
+    def dump_result(
+        self, key: str, value: any, is_append=False, inside_info=False
+    ):
+        content = self.result
+        if inside_info:
+            if "info" not in self.result:
+                self.result["info"] = {}
+            content = self.result["info"]
+
         if is_append:
-            if key not in self.result:
-                self.result[key] = []
-            self.result[key].append(value)
+            if key not in content:
+                content[key] = []
+            content[key].append(value)
         else:
-            self.result[key] = value
+            content[key] = value
 
     def close(self, is_failed=False):
         self.status = "FAILED" if is_failed else "DONE"
