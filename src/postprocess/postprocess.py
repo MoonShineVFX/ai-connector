@@ -24,7 +24,7 @@ def postprocess(
     image_id = cuid_generator()
 
     # Hack args for animate diff (GIF)
-    if image.is_animated:
+    if getattr(image, "is_animated", False):
         image_format = "GIF"
         process_list = [
             process
