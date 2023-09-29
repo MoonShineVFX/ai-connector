@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         DATE_TAG = sh(returnStdout: true, script: 'date +%Y-%m%d-%H%M').trim()
-        IMAGE_NAME = "192.168.8.66:5000/ai-connector
+        IMAGE_NAME = "192.168.8.66:5000/ai-connector"
     }
     stages {
         stage('Build') {
