@@ -78,3 +78,10 @@ def normalize_payload(payload: dict):
             )
 
         payload["controlnet_units"] = normalized_controlnet_units
+
+    # AnimateDiff
+    if (
+        "alwayson_scripts" in payload
+        and "AnimateDiff" in payload["alwayson_scripts"]
+    ):
+        payload["send_images"] = False

@@ -95,6 +95,11 @@ class Job:
             if api_result is None:
                 raise Exception("No result returned")
 
+            # Check if using AnimateDiff
+            if self.is_using_animate_diff():
+                self.check_animate_diff()
+                return True
+
             self.generate_images = api_result.images
             self.dump_result("info", api_result.info)
 
@@ -104,7 +109,7 @@ class Job:
             animate_diff_check = None
             try:
                 # Animate diff handling
-                animate_diff_check = self.check_animate_diff_error(e)
+                animate_diff_check = self.check_animate_diff(e)
                 if animate_diff_check:
                     return True
             except Exception as animate_diff_error:
@@ -120,24 +125,28 @@ class Job:
             self.close(is_failed=True)
             return False
 
-    def check_animate_diff_error(self, e: Exception) -> bool:
+    def is_using_animate_diff(self) -> bool:
+        return (
+            "alwayson_scripts" in self.payload
+            and "AnimateDiff" in self.payload["alwayson_scripts"]
+        )
+
+    def check_animate_diff(self, e: Exception | None = None) -> bool:
         # Check if error is caused by AnimateDiff
-        try:
-            self.payload["alwayson_scripts"]["AnimateDiff"]
-        except:
-            return False
-        if not isinstance(e, RuntimeError):
-            return False
+        if e is not None:
+            if not self.is_using_animate_diff():
+                return False
 
-        if (
-            (len(e.args) < 2)
-            or (not isinstance(e.args[1], str))
-            or ("'str' object has no attribute" not in e.args[1])
-        ):
-            return False
+            if (
+                (len(e.args) < 2)
+                or (not isinstance(e.args[1], str))
+                or ("'str' object has no attribute" not in e.args[1])
+            ):
+                return False
 
-        # Fix AnimateDiff error
-        logger.debug("AnimateDiff error detected, trying to fix...")
+            # Fix AnimateDiff error
+            logger.debug("AnimateDiff error detected, trying to fix...")
+
         animate_diff_path = Settings.get_animate_diff_path(self.type)
         if animate_diff_path is None:
             raise Exception("AnimateDiff path not found")
