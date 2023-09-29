@@ -14,6 +14,10 @@ import traceback
 from postprocess import postprocess
 import requests
 from time import perf_counter
+from utils import get_latest_animate_diff
+from ast import literal_eval
+from PIL import Image
+from io import BytesIO
 
 
 api = webuiapi.WebUIApi(port=Settings.A1111_PORT)
@@ -40,6 +44,7 @@ class Job:
         self.status = status
         self.webhook = webhook
         self.result = {}
+        self.__buffers = []
 
         self.generate_images = []
 
@@ -52,14 +57,8 @@ class Job:
             self.process_list = process_list
 
         # Add default upload process
-        self.process_list.append(
-            PostProcess(
-                type="UPLOAD",
-                args={
-                    "fmt": self.image_format,
-                },
-            )
-        )
+        self.process_list.append(PostProcess(type="UPLOAD"))
+
         # Add nsfw detection process for image generation
         if self.type in ["TXT2IMG", "IMG2IMG", "EXTRA"]:
             self.process_list.append(PostProcess(type="NSFW_DETECTION"))
@@ -102,10 +101,71 @@ class Job:
             return True
 
         except Exception as e:
-            logger.error(traceback.format_exc())
+            animate_diff_check = None
+            try:
+                # Animate diff handling
+                animate_diff_check = self.check_animate_diff_error(e)
+                if animate_diff_check:
+                    return True
+            except Exception as animate_diff_error:
+                # This tracback will log more than following one
+                logger.error(traceback.format_exc())
+                e = animate_diff_error
+
+            # Error handling
+            if animate_diff_check is None:
+                # Not AnimateDiff error
+                logger.error(traceback.format_exc())
             self.dump_result("error", str(e))
             self.close(is_failed=True)
             return False
+
+    def check_animate_diff_error(self, e: Exception) -> bool:
+        # Check if error is caused by AnimateDiff
+        try:
+            self.payload["alwayson_scripts"]["AnimateDiff"]
+        except:
+            return False
+        if not isinstance(e, RuntimeError):
+            return False
+
+        if (
+            (len(e.args) < 2)
+            or (not isinstance(e.args[1], str))
+            or ("'str' object has no attribute 'info'" not in e.args[1])
+        ):
+            return False
+
+        # Fix AnimateDiff error
+        logger.debug("AnimateDiff error detected, trying to fix...")
+        animate_diff_path = Settings.get_animate_diff_path(self.type)
+        if animate_diff_path is None:
+            raise Exception("AnimateDiff path not found")
+
+        result = get_latest_animate_diff(animate_diff_path)
+        if result is None:
+            raise Exception("AnimateDiff files not found")
+
+        # Check if txt exists and load into info
+        info = {"error": "No txt file found"}
+        if "txt" in result:
+            data = result["txt"].read_text(encoding="utf8")
+            info = literal_eval(data)
+
+        self.dump_result("info", info)
+
+        # Load gif
+        temp_buffer = BytesIO(result["gif"].read_bytes())
+        image = Image.open(temp_buffer)
+        self.generate_images = [image]
+
+        self.__buffers.append(temp_buffer)
+
+        # Remove all files in animate diff folder
+        for file in animate_diff_path.glob("*"):
+            file.unlink(missing_ok=True)
+
+        return True
 
     def postprocess(self):
         logger.info("Postprocessing...")
@@ -172,6 +232,10 @@ class Job:
             logger.info(f"Job done.")
         else:
             logger.error(f"Job failed.")
+
+        # Close all buffers
+        for buffer in self.__buffers:
+            buffer.close()
 
         self.emit_webhook()
         self.on_close(self)

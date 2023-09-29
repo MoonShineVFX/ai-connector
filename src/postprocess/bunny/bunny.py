@@ -19,8 +19,13 @@ def upload_bunny(image: Image, image_id: str, fmt: str = "WEBP"):
         "quality": 90,
         "optimize": True,
     }
+
+    if fmt == "GIF":
+        save_options["save_all"] = True
+
     if fmt == "JPEG":
         image = image.convert("RGB")
+
     image.save(byte_io, **save_options)
     byte_io.seek(0)
 

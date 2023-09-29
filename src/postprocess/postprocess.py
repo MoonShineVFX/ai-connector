@@ -23,6 +23,15 @@ def postprocess(
 ):
     image_id = cuid_generator()
 
+    # Hack args for animate diff (GIF)
+    if image.is_animated:
+        image_format = "GIF"
+        process_list = [
+            process
+            for process in process_list
+            if process.type not in ["ADD_TEXT", "WATERMARK", "LETTERBOX"]
+        ]
+
     for process in process_list:
         logger.debug(f"Processing [{process.type}]")
         time_start = perf_counter()
