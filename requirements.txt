@@ -9,3 +9,6 @@ requests-cache==1.1.0
 nsfw_detector==1.1.1
 protobuf==3.20.*
 blurhash-python==1.2.1
+tensorflow==2.13.0
+tensorflow-estimator==2.13.0
+tensorflow-hub==0.7.0
