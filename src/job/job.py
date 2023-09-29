@@ -132,7 +132,7 @@ class Job:
         if (
             (len(e.args) < 2)
             or (not isinstance(e.args[1], str))
-            or ("'str' object has no attribute 'info'" not in e.args[1])
+            or ("'str' object has no attribute" not in e.args[1])
         ):
             return False
 
