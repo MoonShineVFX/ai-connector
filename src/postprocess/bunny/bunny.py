@@ -3,12 +3,21 @@ import requests
 from io import BytesIO
 from defines import Settings
 from loguru import logger
+from typing import List
 
 
-def upload_bunny(image: Image, image_id: str, fmt: str = "WEBP"):
+def upload_bunny(
+    images: List[Image], image_id: str, fmt: str = "WEBP", duration: int = 125
+):
+    # Check lossless
     is_lossless = fmt == "WEBP_LOSSLESS"
     if fmt == "WEBP_LOSSLESS":
         fmt = "WEBP"
+
+    # Check sequence
+    is_sequence = len(images) > 1
+    if is_sequence:
+        fmt = "GIF" if fmt != "WEBP" else "WEBP"
 
     filename = f"{image_id}.{fmt.lower()}"
 
@@ -20,13 +29,28 @@ def upload_bunny(image: Image, image_id: str, fmt: str = "WEBP"):
         "optimize": True,
     }
 
-    if fmt == "GIF":
-        save_options["save_all"] = True
+    # Save all frames if sequence
+    if is_sequence:
+        save_options.update(
+            {
+                "save_all": True,
+                "append_images": images[1:],
+                "duration": duration,
+                "loop": 0,
+            }
+        )
+        if fmt == "WEBP":
+            save_options.update(
+                {
+                    "minimize_size": True,
+                }
+            )
 
+    # Convert to RGB if JPEG
     if fmt == "JPEG":
-        image = image.convert("RGB")
+        images[0] = images[0].convert("RGB")
 
-    image.save(byte_io, **save_options)
+    images[0].save(byte_io, **save_options)
     byte_io.seek(0)
 
     logger.debug(f"Uploading image to BunnyCDN: {filename}")

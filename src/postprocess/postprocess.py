@@ -16,58 +16,64 @@ cuid_generator: Callable[[], str] = cuid_wrapper()
 
 
 def postprocess(
-    image: PILImage,
+    image: PILImage | List[PILImage],
     image_format: ImageFormat,
     process_list: List[PostProcess],
     dump_result: Callable[[str, any, bool, bool], None],
 ):
     image_id = cuid_generator()
 
-    # Hack args for animate diff (GIF)
-    if getattr(image, "is_animated", False):
-        image_format = "GIF"
-        process_list = [
-            process
-            for process in process_list
-            if process.type not in ["ADD_TEXT", "WATERMARK", "LETTERBOX"]
-        ]
+    # Convert to list for gif compatibility
+    this_images = image if isinstance(image, list) else [image]
 
     for process in process_list:
         logger.debug(f"Processing [{process.type}]")
         time_start = perf_counter()
 
+        args = process.args if process.args is not None else {}
+
+        # Loop back process
         if process.type == "ADD_TEXT":
-            image = add_text(
-                image,
-                **process.args,
-            )
+            this_images = [
+                add_text(
+                    image,
+                    **args,
+                )
+                for image in this_images
+            ]
 
+        # Loop back process
         elif process.type == "WATERMARK":
-            image = watermark(image)
+            this_images = [watermark(image) for image in this_images]
 
+        # Loop back process
         elif process.type == "LETTERBOX":
-            new_image = letterbox(image)
+            new_image = letterbox(this_images[0])
             letterbox_url = upload_bunny(
-                new_image,
+                [new_image],
                 image_id + "_letterbox",
                 fmt=image_format,
             )
             dump_result("letterboxes", letterbox_url, True, True)
 
+        # One way process
         elif process.type == "UPLOAD":
             image_url = upload_bunny(
-                image,
+                this_images,
                 image_id,
                 fmt=image_format,
+                **args,
             )
             dump_result("images", image_url, True, False)
 
+        # One way process
         elif process.type == "NSFW_DETECTION":
-            nsfw_stat = nsfw_check(image)
+            nsfw_stat = nsfw_check(this_images[0])
             dump_result("nsfw", nsfw_stat, True, False)
 
+        # One way process
         elif process.type == "BLURHASH":
-            blurhash = encode_blurhash(image)
+            blurhash = encode_blurhash(this_images[0])
             dump_result("blurhashes", blurhash, True, True)
 
         logger.debug(f"Done in {perf_counter() - time_start:.3f}s")

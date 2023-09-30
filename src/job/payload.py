@@ -84,7 +84,7 @@ def normalize_payload(payload: dict):
         "alwayson_scripts" in payload
         and "AnimateDiff" in payload["alwayson_scripts"]
     ):
-        payload["send_images"] = False
+        payload["alwayson_scripts"]["AnimateDiff"]["format"] = ["PNG"]
 
         if "override_settings" not in payload:
             payload["override_settings"] = {}
