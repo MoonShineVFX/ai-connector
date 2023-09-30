@@ -85,3 +85,11 @@ def normalize_payload(payload: dict):
         and "AnimateDiff" in payload["alwayson_scripts"]
     ):
         payload["send_images"] = False
+
+        if "override_settings" not in payload:
+            payload["override_settings"] = {}
+        payload["override_settings"]["pad_cond_uncond"] = True
+        payload["override_settings"]["batch_cond_uncond"] = True
+        payload["override_settings"][
+            "always_discard_next_to_last_sigma"
+        ] = False
