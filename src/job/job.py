@@ -130,7 +130,6 @@ class Job:
     def prune_info(self, info: dict):
         info.pop("all_prompts", None)
         info.pop("all_negative_prompts", None)
-        info.pop("all_seeds", None)
         info.pop("all_subseeds", None)
 
         if "infotexts" in info:
