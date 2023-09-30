@@ -80,18 +80,22 @@ def normalize_payload(payload: dict):
         payload["controlnet_units"] = normalized_controlnet_units
 
     # AnimateDiff
-    if (
-        "alwayson_scripts" in payload
-        and "AnimateDiff" in payload["alwayson_scripts"]
-    ):
-        payload["alwayson_scripts"]["AnimateDiff"]["args"][0]["format"] = [
-            "PNG"
+    try:
+        is_animatediff = payload["alwayson_scripts"]["AnimateDiff"]["args"][0][
+            "enable"
         ]
 
-        if "override_settings" not in payload:
-            payload["override_settings"] = {}
-        payload["override_settings"]["pad_cond_uncond"] = True
-        payload["override_settings"]["batch_cond_uncond"] = True
-        payload["override_settings"][
-            "always_discard_next_to_last_sigma"
-        ] = False
+        if is_animatediff:
+            payload["alwayson_scripts"]["AnimateDiff"]["args"][0]["format"] = [
+                "PNG"
+            ]
+
+            if "override_settings" not in payload:
+                payload["override_settings"] = {}
+            payload["override_settings"]["pad_cond_uncond"] = True
+            payload["override_settings"]["batch_cond_uncond"] = True
+            payload["override_settings"][
+                "always_discard_next_to_last_sigma"
+            ] = False
+    except:
+        pass

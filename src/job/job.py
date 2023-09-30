@@ -122,10 +122,13 @@ class Job:
             return False
 
     def is_using_animate_diff(self) -> bool:
-        return (
-            "alwayson_scripts" in self.payload
-            and "AnimateDiff" in self.payload["alwayson_scripts"]
-        )
+        try:
+            is_animatediff = self.payload["alwayson_scripts"]["AnimateDiff"][
+                "args"
+            ][0]["enable"]
+            return is_animatediff is True
+        except:
+            return False
 
     def prune_info(self, info: dict):
         info.pop("all_prompts", None)
