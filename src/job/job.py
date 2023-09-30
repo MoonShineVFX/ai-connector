@@ -61,8 +61,8 @@ class Job:
             fps = 8
             try:
                 fps = self.payload["alwayson_scripts"]["AnimateDiff"]["args"][
-                    "fps"
-                ]
+                    0
+                ]["fps"]
             except:
                 pass
             upload_args = {
