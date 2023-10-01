@@ -81,7 +81,7 @@ class RedisDatabase(object):
         if key == self.__command_key:
             return "COMMAND", payload
 
-        if key.startswith("queue_"):
+        if key == "queue" or key.startswith("queue_"):
             return "JOB", payload
 
         raise Exception(f"Unknown signal: {key} {payload}")
