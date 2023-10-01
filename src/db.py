@@ -84,7 +84,7 @@ class RedisDatabase(object):
         if key.startswith("queue_"):
             return "JOB", payload
 
-        raise Exception("Unknown signal")
+        raise Exception(f"Unknown signal: {key} {payload}")
 
     def get_job(self, job_id: str) -> Job | None:
         job_dict = self.__db.hgetall(job_id)
