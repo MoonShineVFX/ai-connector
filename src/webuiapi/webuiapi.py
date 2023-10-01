@@ -852,6 +852,26 @@ class WebUIApi:
                 )
                 time.sleep(check_interval)
 
+    # Connector implementation
+    def get_queue_status(self):
+        response = self.session.get(
+            url=f"{self.baseurl}/queue/status",
+            headers={"Cache-Control": "no-cache"},
+        )
+        return response.json()
+
+    def restart_server(self):
+        response = self.session.post(url=f"{self.baseurl}/server-restart")
+        return response.json()
+
+    def stop_server(self):
+        response = self.session.post(url=f"{self.baseurl}/server-stop")
+        return response.json()
+
+    def kill_server(self):
+        response = self.session.post(url=f"{self.baseurl}/server-kill")
+        return response.json()
+
 
 ## Interface for extensions
 

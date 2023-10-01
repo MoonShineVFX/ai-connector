@@ -172,7 +172,7 @@ class Job:
                 else {},
                 json={
                     "id": self.id,
-                    "worker": Settings.WORKER_NAME,
+                    "worker": Settings.WORKER_INFO,
                     "status": self.status,
                     "result": self.result,
                 },
