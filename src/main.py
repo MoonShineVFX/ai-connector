@@ -38,7 +38,12 @@ if __name__ == "__main__":
             logger.info("<< Standby >>")
             is_previous_signal_received = False
 
-        wait_result = db.wait_signal()
+        try:
+            wait_result = db.wait_signal()
+        except Exception as e:
+            logger.error(f"Failed to wait signal: {e}")
+            logger.error(traceback.format_exc())
+            continue
         if wait_result is None:
             continue
 
