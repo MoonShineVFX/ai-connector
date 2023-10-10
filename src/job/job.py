@@ -80,6 +80,21 @@ class Job:
 
         api_result = None
         try:
+            # If animate diff, set model first
+            if self.is_using_animate_diff():
+                try:
+                    sd_model = self.payload["override_settings"][
+                        "sd_model_checkpoint"
+                    ]
+                    logger.debug(
+                        f"Setting sd_model_checkpoint first ({sd_model})"
+                    )
+                    api.set_options({"sd_model_checkpoint": sd_model})
+                    logger.debug("Done")
+                except Exception as e:
+                    logger.warning(f"Failed to set sd_model first: {e}")
+                    pass
+
             if self.type == "TXT2IMG":
                 api_result = api.txt2img(
                     **self.payload,
