@@ -132,6 +132,7 @@ class Job:
 
             self.prune_info(api_result.info)
             self.dump_result("info", api_result.info)
+            self.dump_result("generate_time", perf_counter() - self.start_time)
 
             return True
 
@@ -168,8 +169,6 @@ class Job:
                     self.process_list,
                     self.dump_result,
                 )
-
-            self.dump_result("generate_time", perf_counter() - self.start_time)
             return True
 
         except Exception as e:
