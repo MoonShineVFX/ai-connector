@@ -1,6 +1,8 @@
 from job import api
 from loguru import logger
 from time import sleep
+from posthog import Posthog
+from defines import Settings
 
 
 def check_webui_alive():
@@ -28,3 +30,6 @@ def restart_webui():
             sleep(5)
 
     logger.info("WebUI restarted")
+
+
+posthog = Posthog(Settings.POSTHOG_API_KEY, host=Settings.POSTHOG_HOST)

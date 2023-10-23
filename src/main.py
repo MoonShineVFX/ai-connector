@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
         # Signal received
         is_previous_signal_received = True
-        signalType, payload = wait_result
+        signalType, payload, queue_key = wait_result
         db.update_worker_status("PROCESSING")
 
         # Command
@@ -72,7 +72,7 @@ if __name__ == "__main__":
             logger.info(f"Received job: {payload}")
 
             try:
-                job = db.get_job(payload)
+                job = db.get_job(payload, queue_key)
                 if job is None:
                     logger.warning("No job found or failed to get job")
                     continue

@@ -12,6 +12,8 @@ from defines import (
 )
 from job import Job
 import traceback
+from utils import posthog
+from datetime import datetime, timezone
 
 
 class RedisDatabase(object):
@@ -58,7 +60,7 @@ class RedisDatabase(object):
     def update_worker_status(self, status: WorkerStatus):
         self.__db.setex(self.__worker_key, self.WORKER_TIMEOUT, status)
 
-    def wait_signal(self) -> tuple[SignalType, str | CommandType] | None:
+    def wait_signal(self) -> tuple[SignalType, str | CommandType, str] | None:
         """
         Wait for a signal from redis and return the payload.
 
@@ -79,14 +81,14 @@ class RedisDatabase(object):
         key, payload = blopo_result
 
         if key == self.__command_key:
-            return "COMMAND", payload
+            return "COMMAND", payload, key
 
         if key == "queue" or key.startswith("queue_"):
-            return "JOB", payload
+            return "JOB", payload, key
 
         raise Exception(f"Unknown signal: {key} {payload}")
 
-    def get_job(self, job_id: str) -> Job | None:
+    def get_job(self, job_id: str, queue_key: str) -> Job | None:
         job_dict = self.__db.hgetall(job_id)
         if not job_dict:
             logger.error(f"Job not found: {job_id}")
@@ -114,6 +116,14 @@ class RedisDatabase(object):
         if job_dict.get("webhook"):
             job_dict["webhook"] = Webhook(**json.loads(job_dict["webhook"]))
 
+        # Convert created_at from timestamp
+        if job_dict.get("created_at"):
+            job_dict["created_at"] = datetime.fromisoformat(
+                job_dict["created_at"]
+            )
+        else:
+            job_dict["created_at"] = datetime.now(timezone.utc)
+
         # Create job
         try:
             job = Job(
@@ -121,6 +131,8 @@ class RedisDatabase(object):
                 _id=job_id,
                 _type=job_dict["type"],
                 payload=job_dict["payload"],
+                create_time=job_dict["created_at"],
+                queue_key=queue_key,
                 image_format=job_dict["format"],
                 process_list=job_dict.get("postprocess", []),
                 status=job_dict["status"],
@@ -150,7 +162,20 @@ class RedisDatabase(object):
             job.id,
             "status",
             job.status,
-            mapping={"result": result},
+            mapping={
+                "updated_at": datetime.now().isoformat(),
+                "result": result,
+            },
+        )
+
+        # log to posthog
+        posthog.capture(
+            Settings.WORKER_NAME,
+            "worker_process_job",
+            {
+                **job.result,
+                "status": job.status,
+            },
         )
 
     def flush_queue(self):

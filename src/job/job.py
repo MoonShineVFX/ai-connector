@@ -14,6 +14,7 @@ import traceback
 from postprocess import postprocess
 import requests
 from time import perf_counter
+from datetime import datetime, timezone
 
 
 api = webuiapi.WebUIApi(port=Settings.A1111_PORT)
@@ -26,6 +27,8 @@ class Job:
         _id: str,
         _type: JobType,
         payload: dict,
+        create_time: datetime,
+        queue_key: str,
         image_format: ImageFormat = "WEBP",
         process_list: List[PostProcess] = None,
         status: JobStatus = "PENDING",
@@ -45,6 +48,8 @@ class Job:
         self.generate_images = []
 
         self.start_time = perf_counter()
+        self.create_time = create_time
+        self.queue_key = queue_key
 
         self.process_list: List[PostProcess]
         if process_list is None:
@@ -218,6 +223,13 @@ class Job:
             logger.info(f"Job done.")
         else:
             logger.error(f"Job failed.")
+
+        # Record process time
+        self.dump_result(
+            "process_time",
+            (datetime.now(timezone.utc) - self.create_time).total_seconds(),
+        )
+        self.dump_result("queue_pool", self.queue_key)
 
         # Close all buffers
         for buffer in self.__buffers:
