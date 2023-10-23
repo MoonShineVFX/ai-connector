@@ -30,7 +30,7 @@ def normalize_image(image: str):
 
     if image.startswith("https://"):
         logger.debug(f"Downloading image: {image}")
-        response = requests.get(image, headers=REQUESTS_HEADERS)
+        response = requests.get(image, headers=REQUESTS_HEADERS, timeout=300)
         if response.status_code == 200:
             return Image.open(BytesIO(response.content))
         else:

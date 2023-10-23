@@ -54,13 +54,16 @@ def upload_bunny(
     byte_io.seek(0)
 
     logger.debug(f"Uploading image to BunnyCDN: {filename}")
-    requests.put(
+    response = requests.put(
         f"{Settings.BUNNY_UPLOAD_URL}/{filename}",
         data=byte_io.read(),
         headers={
             "AccessKey": Settings.BUNNY_API_KEY,
             "content-type": "application/octet-stream",
         },
+        # 5 minutes
+        timeout=300,
     )
+    response.raise_for_status()
 
     return f"{Settings.BUNNY_PUBLIC_URL}/{filename}"
