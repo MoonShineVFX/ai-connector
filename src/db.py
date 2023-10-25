@@ -189,21 +189,27 @@ class RedisDatabase(object):
             # remove infotexts
             job.result["info"].pop("infotexts", None)
 
-        elastic_client.index(
-            id=job.id,
-            index=f"worker_{Settings.WORKER_NAME.lower()}_{now.strftime('%Y%m%d')}",
-            document={
-                "@timestamp": now,
-                "worker": Settings.WORKER_NAME,
-                "status": job.status,
-                "type": job.type,
-                "format": job.image_format,
-                "payload": job.payload,
-                "postprocess": [process.type for process in job.process_list],
-                **job.result,
-                **prompts,
-            },
-        )
+        try:
+            elastic_client.index(
+                id=job.id,
+                index=f"worker_{Settings.WORKER_NAME.lower()}_{now.strftime('%Y%m%d')}",
+                document={
+                    "@timestamp": now,
+                    "worker": Settings.WORKER_NAME,
+                    "status": job.status,
+                    "type": job.type,
+                    "format": job.image_format,
+                    "payload": job.payload,
+                    "postprocess": [
+                        process.type for process in job.process_list
+                    ],
+                    **job.result,
+                    **prompts,
+                },
+            )
+        except Exception as e:
+            logger.error(f"Failed to log to elastic: {job.id}")
+            logger.error(traceback.format_exc())
 
     def flush_queue(self):
         self.__db.delete(self.__queue_key)
