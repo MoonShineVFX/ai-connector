@@ -199,7 +199,7 @@ class RedisDatabase(object):
                     "status": job.status,
                     "type": job.type,
                     "format": job.image_format,
-                    "payload": job.payload,
+                    "payload": job.payload_raw,
                     "postprocess": [
                         process.type for process in job.process_list
                     ],

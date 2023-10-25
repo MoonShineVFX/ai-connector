@@ -58,6 +58,7 @@ class Job:
             self.process_list = process_list
 
         # Normalize payload
+        self.payload_raw = self.payload.copy()
         normalize_payload(self.payload)
 
         # Add default upload process
