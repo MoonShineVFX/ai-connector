@@ -13,13 +13,7 @@ from defines import (
 from job import Job
 import traceback
 from datetime import datetime, timezone
-from elasticsearch import Elasticsearch
-
-
-elastic_client = Elasticsearch(
-    cloud_id=Settings.ELASTIC_CLOUD_ID,
-    api_key=Settings.ELASTIC_API_KEY,
-)
+from elastic import elastic_client
 
 
 class RedisDatabase(object):
@@ -164,7 +158,7 @@ class RedisDatabase(object):
             logger.error(traceback.format_exc())
             result = json.dumps({"error": str(e)})
 
-        now = datetime.now()
+        now = datetime.now(timezone.utc)
 
         # Update job
         self.__db.hset(
@@ -172,18 +166,32 @@ class RedisDatabase(object):
             "status",
             job.status,
             mapping={
-                "updated_at": datetime.now().isoformat(),
+                "updated_at": now.isoformat(),
                 "result": result,
             },
         )
 
         # log to elastic_search
-        if "info" in job.result and "infotexts" in job.result["info"]:
-            del job.result["info"]["infotexts"]
+        # move prompt from payload
+        prompts = {}
+        if "prompt" in job.payload:
+            prompts["prompt"] = job.payload["prompt"]
+            del job.payload["prompt"]
+        if "negative_prompt" in job.payload:
+            prompts["negative_prompt"] = job.payload["negative_prompt"]
+            del job.payload["negative_prompt"]
+
+        # remove prompts from result
+        if "info" in job.result:
+            job.result["info"].pop("prompt", None)
+            job.result["info"].pop("negative_prompt", None)
+
+            # remove infotexts
+            job.result["info"].pop("infotexts", None)
 
         elastic_client.index(
             id=job.id,
-            index=f"worker_{Settings.WORKER_NAME.lower()}_{now.strftime('%Y-%m-%d')}",
+            index=f"worker_{Settings.WORKER_NAME.lower()}_{now.strftime('%Y%m%d')}",
             document={
                 "@timestamp": now,
                 "worker": Settings.WORKER_NAME,
@@ -193,6 +201,7 @@ class RedisDatabase(object):
                 "payload": job.payload,
                 "postprocess": [process.type for process in job.process_list],
                 **job.result,
+                **prompts,
             },
         )
 
