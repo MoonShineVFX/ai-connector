@@ -52,8 +52,8 @@ class Settings:
     EXCLUDE_GLOBAL_QUEUE = (
         os.environ.get("EXCLUDE_GLOBAL_QUEUE", "false").lower() == "true"
     )
-    POSTHOG_API_KEY = os.environ.get("POSTHOG_API_KEY", "")
-    POSTHOG_HOST = os.environ.get("POSTHOG_HOST", "https://app.posthog.com")
+    ELASTIC_CLOUD_ID = os.environ.get("ELASTIC_CLOUD_ID", "")
+    ELASTIC_API_KEY = os.environ.get("ELASTIC_API_KEY", "")
 
     @staticmethod
     def get_queue_groups():

@@ -12,4 +12,4 @@ blurhash-python==1.2.1
 tensorflow==2.13.0
 tensorflow-estimator==2.13.0
 tensorflow-hub==0.7.0
-posthog==3.0.2
+elasticsearch==8.10.1

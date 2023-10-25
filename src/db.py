@@ -12,8 +12,14 @@ from defines import (
 )
 from job import Job
 import traceback
-from utils import posthog
 from datetime import datetime, timezone
+from elasticsearch import Elasticsearch
+
+
+elastic_client = Elasticsearch(
+    cloud_id=Settings.ELASTIC_CLOUD_ID,
+    api_key=Settings.ELASTIC_API_KEY,
+)
 
 
 class RedisDatabase(object):
@@ -158,6 +164,9 @@ class RedisDatabase(object):
             logger.error(traceback.format_exc())
             result = json.dumps({"error": str(e)})
 
+        now = datetime.now()
+
+        # Update job
         self.__db.hset(
             job.id,
             "status",
@@ -168,13 +177,22 @@ class RedisDatabase(object):
             },
         )
 
-        # log to posthog
-        posthog.capture(
-            Settings.WORKER_NAME,
-            "worker_process_job",
-            {
-                **job.result,
+        # log to elastic_search
+        if "info" in job.result and "infotexts" in job.result["info"]:
+            del job.result["info"]["infotexts"]
+
+        elastic_client.index(
+            id=job.id,
+            index=f"worker_{Settings.WORKER_NAME.lower()}_{now.strftime('%Y-%m-%d')}",
+            document={
+                "@timestamp": now,
+                "worker": Settings.WORKER_NAME,
                 "status": job.status,
+                "type": job.type,
+                "format": job.image_format,
+                "payload": job.payload,
+                "postprocess": [process.type for process in job.process_list],
+                **job.result,
             },
         )
 
