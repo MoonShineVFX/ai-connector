@@ -62,7 +62,7 @@ def upload_bunny(
             "content-type": "application/octet-stream",
         },
         # 5 minutes
-        timeout=300,
+        timeout=60,
     )
     response.raise_for_status()
 
