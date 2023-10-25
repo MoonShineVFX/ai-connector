@@ -29,9 +29,7 @@ class RedisDatabase(object):
             decode_responses=True,
         )
 
-        self.__worker = worker_name_normalized = (
-            Settings.WORKER_NAME.strip().replace(" ", "_").lower()
-        )
+        self.__worker = Settings.WORKER_NAME.strip().replace(" ", "_").lower()
         logger.debug("Register worker name: " + self.__worker)
 
         # Keys
@@ -171,7 +169,10 @@ class RedisDatabase(object):
             },
         )
 
-        # log to elastic_search
+        # Log to elastic
+        self.log_job(job, now)
+
+    def log_job(self, job: Job, timestamp: datetime):
         # move prompt from payload
         prompts = {}
         if "prompt" in job.payload:
@@ -192,9 +193,9 @@ class RedisDatabase(object):
         try:
             elastic_client.index(
                 id=job.id,
-                index=f"worker_{Settings.WORKER_NAME.lower()}_{now.strftime('%Y%m%d')}",
+                index=f"worker_{Settings.WORKER_NAME.lower()}_{timestamp.strftime('%Y%m%d')}",
                 document={
-                    "@timestamp": now,
+                    "@timestamp": timestamp,
                     "worker": Settings.WORKER_NAME,
                     "status": job.status,
                     "type": job.type,

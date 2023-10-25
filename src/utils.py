@@ -1,6 +1,7 @@
 from job import api
 from loguru import logger
 from time import sleep
+from db import RedisDatabase
 
 
 def check_webui_alive():
@@ -12,7 +13,9 @@ def check_webui_alive():
         return False
 
 
-def restart_webui():
+def restart_webui(db: RedisDatabase):
+    db.update_worker_status("RESTART")
+
     try:
         api.restart_server()
     except:

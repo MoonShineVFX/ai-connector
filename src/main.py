@@ -61,8 +61,7 @@ if __name__ == "__main__":
                 break
 
             if command == "RESTART_WEBUI":
-                db.update_worker_status("RESTART")
-                restart_webui()
+                restart_webui(db)
 
             if command == "FLUSH_QUEUE":
                 db.flush_queue()
@@ -83,10 +82,12 @@ if __name__ == "__main__":
             # Run
             is_success = job.generate()
             if not is_success:
+                restart_webui(db)
                 continue
 
             is_success = job.postprocess()
             if not is_success:
+                restart_webui(db)
                 continue
 
             job.close()
