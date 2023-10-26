@@ -44,16 +44,19 @@ class Settings:
         + " | v:"
         + os.environ.get("VERSION", "unknown")
     )
-    BUNNY_API_KEY = os.environ.get("BUNNY_API_KEY", "")
-    BUNNY_UPLOAD_URL = os.environ.get("BUNNY_UPLOAD_URL", "")
-    BUNNY_PUBLIC_URL = os.environ.get("BUNNY_PUBLIC_URL", "")
     A1111_PORT = os.environ.get("A1111_PORT", 7860)
     QUEUE_GROUP = os.environ.get("QUEUE_GROUP", None)
     EXCLUDE_GLOBAL_QUEUE = (
         os.environ.get("EXCLUDE_GLOBAL_QUEUE", "false").lower() == "true"
     )
-    ELASTIC_CLOUD_ID = os.environ.get("ELASTIC_CLOUD_ID", "")
-    ELASTIC_API_KEY = os.environ.get("ELASTIC_API_KEY", "")
+    ELASTIC_CLOUD_ID = os.environ["ELASTIC_CLOUD_ID"]
+    ELASTIC_API_KEY = os.environ["ELASTIC_API_KEY"]
+    R2_ENDPOINT_URL = os.environ["R2_ENDPOINT_URL"]
+    R2_BUCKET_NAME = os.environ["R2_BUCKET_NAME"]
+    R2_PUBLIC_URL = os.environ["R2_PUBLIC_URL"]
+    AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
+    AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+    DEV = os.environ.get("DEV", "false").lower() == "true"
 
     @staticmethod
     def get_queue_groups():

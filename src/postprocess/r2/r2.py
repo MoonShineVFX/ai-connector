@@ -1,12 +1,19 @@
 from PIL.Image import Image
-import requests
 from io import BytesIO
 from defines import Settings
 from loguru import logger
 from typing import List
+import boto3
 
 
-def upload_bunny(
+r2_client = boto3.client(
+    service_name="s3",
+    endpoint_url=Settings.R2_ENDPOINT_URL,
+    region_name="apac",
+)
+
+
+def upload_r2(
     images: List[Image], image_id: str, fmt: str = "WEBP", duration: int = 125
 ):
     # Check lossless
@@ -19,7 +26,7 @@ def upload_bunny(
     if is_sequence:
         fmt = "GIF" if fmt != "WEBP" else "WEBP"
 
-    filename = f"{image_id}.{fmt.lower()}"
+    filename = f"{'dev_' if Settings.DEV else ''}{image_id}.{fmt.lower()}"
 
     byte_io = BytesIO()
     save_options = {
@@ -53,17 +60,11 @@ def upload_bunny(
     images[0].save(byte_io, **save_options)
     byte_io.seek(0)
 
-    logger.debug(f"Uploading image to BunnyCDN: {filename}")
-    response = requests.put(
-        f"{Settings.BUNNY_UPLOAD_URL}/{filename}",
-        data=byte_io.read(),
-        headers={
-            "AccessKey": Settings.BUNNY_API_KEY,
-            "content-type": "application/octet-stream",
-        },
-        # 5 minutes
-        timeout=60,
+    logger.debug(f"Uploading image to R2: {filename}")
+    r2_client.upload_fileobj(
+        byte_io,
+        Settings.R2_BUCKET_NAME,
+        filename,
     )
-    response.raise_for_status()
 
-    return f"{Settings.BUNNY_PUBLIC_URL}/{filename}"
+    return f"{Settings.R2_PUBLIC_URL}/{filename}"

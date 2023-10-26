@@ -6,7 +6,7 @@ from loguru import logger
 from time import perf_counter
 
 from .add_text import add_text
-from .bunny import upload_bunny
+from .r2 import upload_r2
 from .letterbox import letterbox
 from .nsfw import nsfw_check
 from .watermark import watermark
@@ -49,7 +49,7 @@ def postprocess(
         # Loop back process
         elif process.type == "LETTERBOX":
             new_image = letterbox(this_images[0])
-            letterbox_url = upload_bunny(
+            letterbox_url = upload_r2(
                 [new_image],
                 image_id + "_letterbox",
                 fmt=image_format,
@@ -58,7 +58,7 @@ def postprocess(
 
         # One way process
         elif process.type == "UPLOAD":
-            image_url = upload_bunny(
+            image_url = upload_r2(
                 this_images,
                 image_id,
                 fmt=image_format,

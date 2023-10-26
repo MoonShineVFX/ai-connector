@@ -12,3 +12,4 @@ tensorflow==2.13.0
 tensorflow-estimator==2.13.0
 tensorflow-hub==0.7.0
 elasticsearch==8.10.1
+boto3==1.28.71
