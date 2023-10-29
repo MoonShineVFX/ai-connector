@@ -135,6 +135,7 @@ class RedisDatabase(object):
                 process_list=job_dict.get("postprocess", []),
                 status=job_dict["status"],
                 webhook=job_dict.get("webhook", None),
+                tag=job_dict.get("tag", None),
             )
             return job
         except Exception as e:
@@ -203,6 +204,7 @@ class RedisDatabase(object):
                     "type": job.type,
                     "format": job.image_format,
                     "payload": job.payload_raw,
+                    "tag": job.tag,
                     "postprocess": [
                         process.type for process in job.process_list
                     ],

@@ -1,4 +1,4 @@
-from PIL.Image import Image
+from PIL.Image import Image, Resampling
 from io import BytesIO
 from defines import Settings
 from loguru import logger
@@ -14,7 +14,11 @@ r2_client = boto3.client(
 
 
 def upload_r2(
-    images: List[Image], image_id: str, fmt: str = "WEBP", duration: int = 125
+    images: List[Image],
+    image_id: str,
+    fmt: str = "WEBP",
+    duration: int = 125,
+    resize: int | None = None,
 ):
     # Check lossless
     is_lossless = fmt == "WEBP_LOSSLESS"
@@ -26,7 +30,7 @@ def upload_r2(
     if is_sequence:
         fmt = "GIF" if fmt != "WEBP" else "WEBP"
 
-    filename = f"{'dev_' if Settings.DEV else ''}{image_id}.{fmt.lower()}"
+    filename = f"{'dev/' if Settings.DEV else ''}{image_id}.{fmt.lower()}"
 
     byte_io = BytesIO()
     save_options = {
@@ -35,6 +39,11 @@ def upload_r2(
         "quality": 90,
         "optimize": True,
     }
+
+    # Resize if specified
+    if resize is not None:
+        for image in images:
+            image.thumbnail((resize, 4096), Resampling.LANCZOS)
 
     # Save all frames if sequence
     if is_sequence:

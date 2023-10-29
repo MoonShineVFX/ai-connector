@@ -66,6 +66,17 @@ def postprocess(
             )
             dump_result("images", image_url, True, False)
 
+            # upload first frame if animation for preview
+            if len(this_images) > 1 and image_format == "WEBP":
+                image_url = upload_r2(
+                    [this_images[0]],
+                    image_id + "_static",
+                    fmt=image_format,
+                    resize=512,
+                    **args,
+                )
+                dump_result("preview", image_url, True, False)
+
         # One way process
         elif process.type == "NSFW_DETECTION":
             nsfw_stat = nsfw_check(this_images[0])
