@@ -17,23 +17,30 @@ REQUESTS_HEADERS = headers = {
 
 
 def normalize_image(image: str):
+    pil_image = None
     if image.startswith("data:image"):
-        return Image.open(
+        pil_image = Image.open(
             BytesIO(
                 base64.b64decode(re.sub("^data:image/.+;base64,", "", image))
             )
         )
-
-    if image.startswith("https://"):
+    elif image.startswith("https://"):
         logger.debug(f"Downloading image: {image}")
         response = requests.get(image, headers=REQUESTS_HEADERS, timeout=60)
         if response.status_code == 200:
-            return Image.open(BytesIO(response.content))
+            pil_image = Image.open(BytesIO(response.content))
         else:
             logger.error(f"Failed to download image: {response.status_code}")
             raise Exception(f"Invalid image requested: {image[:100]}")
 
-    raise Exception(f"Invalid image: {image[:100]}")
+    if pil_image is None:
+        raise Exception(f"Invalid image: {image[:100]}")
+
+    # change to RGB if CMYK
+    if pil_image.mode == "CMYK":
+        pil_image = pil_image.convert("RGB")
+
+    return pil_image
 
 
 def normalize_payload(payload: dict):
