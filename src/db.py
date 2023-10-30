@@ -176,12 +176,12 @@ class RedisDatabase(object):
     def log_job(self, job: Job, timestamp: datetime):
         # move prompt from payload
         prompts = {}
-        if "prompt" in job.payload:
-            prompts["prompt"] = job.payload["prompt"]
-            del job.payload["prompt"]
-        if "negative_prompt" in job.payload:
-            prompts["negative_prompt"] = job.payload["negative_prompt"]
-            del job.payload["negative_prompt"]
+        if "prompt" in job.payload_raw:
+            prompts["prompt"] = job.payload_raw["prompt"]
+            del job.payload_raw["prompt"]
+        if "negative_prompt" in job.payload_raw:
+            prompts["negative_prompt"] = job.payload_raw["negative_prompt"]
+            del job.payload_raw["negative_prompt"]
 
         # remove prompts from result
         if "info" in job.result:
