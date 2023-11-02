@@ -37,26 +37,62 @@ class RedisDatabase(object):
         self.__worker_key = f"worker_{self.__worker}"
 
         # Queue
-        self.__global_queue_key = "queue"
-        self.__queue_key = f"queue_{self.__worker}"
-        self.__queue_group_keys = [
-            f"queue_group_{group.strip().replace(' ', '_').lower()}"
-            for group in Settings.get_queue_groups()
-        ]
-
+        self.__queue_worker_key = f"queue_{self.__worker}"
         self.__queue_key_list = []
-        self.__queue_key_list.append(self.__queue_key)
-        self.__queue_key_list.extend(self.__queue_group_keys)
-        if not Settings.EXCLUDE_GLOBAL_QUEUE:
-            self.__queue_key_list.append(self.__global_queue_key)
+        self.update_queue_key_list()
         logger.debug(f"Queue keys: {self.__queue_key_list}")
 
         # Register worker and clean previous commands
         self.__db.delete(self.__command_key)
         self.update_worker_status("INITIAL")
 
+    def update_queue_key_list(self):
+        try:
+            # Load queue config
+            queue_config_str = self.__db.get("queue:config")
+
+            if queue_config_str is None:
+                raise ValueError("Queue config not found")
+
+            queue_config = json.loads(str(queue_config_str))
+            # [
+            #     {"name": "gif", "workers": ["mscgp32", "mscgp33"]},
+            #     {"name": "_global", "workers": ["mscgp46", "mscgp47"]},
+            # ]
+
+            # Filter and Sort by order
+            group_queue_keys = [
+                "queue"
+                if queue_info["name"] == "_global"
+                else f"queue_group_{queue_info['name']}"
+                for queue_info in queue_config
+                if self.__worker in queue_info["workers"]
+            ]
+
+            self.__queue_key_list = [self.__queue_worker_key]
+            self.__queue_key_list += group_queue_keys
+            logger.debug(f"Queue keys: {self.__queue_key_list}")
+
+        except Exception as e:
+            logger.error(
+                f"Failed to load queue config, use default queue: {e}"
+            )
+            logger.error(traceback.format_exc())
+            self.__queue_key_list = [self.__queue_worker_key, "queue"]
+            return
+
     def update_worker_status(self, status: WorkerStatus):
-        self.__db.setex(self.__worker_key, self.WORKER_TIMEOUT, status)
+        self.__db.setex(
+            self.__worker_key,
+            self.WORKER_TIMEOUT,
+            json.dumps(
+                {
+                    "status": status,
+                    "version": Settings.WORKER_VERSION,
+                    "queue_list": self.__queue_key_list,
+                }
+            ),
+        )
 
     def wait_signal(self) -> tuple[SignalType, str | CommandType, str] | None:
         """
@@ -217,7 +253,7 @@ class RedisDatabase(object):
             logger.error(traceback.format_exc())
 
     def flush_queue(self):
-        self.__db.delete(self.__queue_key)
+        self.__db.delete(self.__queue_worker_key)
 
     def close(self):
         self.__db.delete(self.__worker_key)

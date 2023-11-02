@@ -66,6 +66,9 @@ if __name__ == "__main__":
             if command == "FLUSH_QUEUE":
                 db.flush_queue()
 
+            if command == "RELOAD_QUEUE_CONFIG":
+                db.update_queue_key_list()
+
         # Queue
         if signalType == "JOB":
             logger.info(f"Received job: {payload}")

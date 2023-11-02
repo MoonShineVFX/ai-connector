@@ -185,6 +185,14 @@ class Job:
         if not self.webhook:
             return
         logger.info(f"Emitting webhook: {self.webhook}")
+        logger.info(
+            {
+                "id": self.id,
+                "worker": Settings.WORKER_INFO,
+                "status": self.status,
+                "result": self.result,
+            }
+        )
         try:
             requests.post(
                 self.webhook.url,
