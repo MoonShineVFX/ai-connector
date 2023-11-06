@@ -15,7 +15,11 @@ class JsonPILSerializer(JsonSerializer):
 
 
 elastic_client = Elasticsearch(
+    hosts=Settings.ELASTIC_HOST,
     cloud_id=Settings.ELASTIC_CLOUD_ID,
     api_key=Settings.ELASTIC_API_KEY,
+    headers={"Authorization": Settings.ELASTIC_AUTH_HEADER}
+    if Settings.ELASTIC_AUTH_HEADER is not None
+    else None,
     serializers={"application/json": JsonPILSerializer()},
 )

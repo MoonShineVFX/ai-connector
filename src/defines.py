@@ -48,8 +48,10 @@ class Settings:
         + os.environ.get("VERSION", "unknown")
     )
     A1111_PORT = os.environ.get("A1111_PORT", 7860)
-    ELASTIC_CLOUD_ID = os.environ["ELASTIC_CLOUD_ID"]
-    ELASTIC_API_KEY = os.environ["ELASTIC_API_KEY"]
+    ELASTIC_HOST = os.environ.get("ELASTIC_HOST", None)
+    ELASTIC_AUTH_HEADER = os.environ.get("ELASTIC_AUTH_HEADER", None)
+    ELASTIC_CLOUD_ID = os.environ.get("ELASTIC_CLOUD_ID", None)
+    ELASTIC_API_KEY = os.environ.get("ELASTIC_API_KEY", None)
     R2_ENDPOINT_URL = os.environ["R2_ENDPOINT_URL"]
     R2_BUCKET_NAME = os.environ["R2_BUCKET_NAME"]
     R2_PUBLIC_URL = os.environ["R2_PUBLIC_URL"]
