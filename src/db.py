@@ -170,6 +170,9 @@ class RedisDatabase(object):
                 _type=job_dict["type"],
                 payload=job_dict["payload"],
                 create_time=job_dict["created_at"],
+                wait_time=(
+                    datetime.now(timezone.utc) - job_dict["created_at"]
+                ).total_seconds(),
                 queue_key=queue_key,
                 image_format=job_dict["format"],
                 process_list=job_dict.get("postprocess", []),

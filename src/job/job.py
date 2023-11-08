@@ -28,6 +28,7 @@ class Job:
         _type: JobType,
         payload: dict,
         create_time: datetime,
+        wait_time: float,
         queue_key: str,
         image_format: ImageFormat = "WEBP",
         process_list: List[PostProcess] = None,
@@ -61,6 +62,9 @@ class Job:
             self.process_list = []
         else:
             self.process_list = process_list
+
+        # Dump wait time
+        self.dump_result("wait_time", wait_time)
 
         # Normalize payload
         self.payload_raw = self.payload.copy()
