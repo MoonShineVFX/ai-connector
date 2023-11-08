@@ -33,6 +33,7 @@ class Job:
         process_list: List[PostProcess] = None,
         status: JobStatus = "PENDING",
         webhook: Webhook = None,
+        metadata: dict = None,
         tag: str = None,
     ):
         self.on_close = on_close
@@ -44,6 +45,7 @@ class Job:
         self.status = status
         self.webhook = webhook
         self.result = {}
+        self.metadata = metadata
         self.tag = tag
 
         self.__buffers = []

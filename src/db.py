@@ -150,6 +150,10 @@ class RedisDatabase(object):
         if job_dict.get("webhook"):
             job_dict["webhook"] = Webhook(**json.loads(job_dict["webhook"]))
 
+        # Convert metadata from dict
+        if job_dict.get("metadata"):
+            job_dict["metadata"] = json.loads(job_dict["metadata"])
+
         # Convert created_at from timestamp
         if job_dict.get("created_at"):
             job_dict["created_at"] = datetime.fromisoformat(
@@ -171,6 +175,7 @@ class RedisDatabase(object):
                 process_list=job_dict.get("postprocess", []),
                 status=job_dict["status"],
                 webhook=job_dict.get("webhook", None),
+                metadata=job_dict.get("metadata", None),
                 tag=job_dict.get("tag", None),
             )
             return job
@@ -240,10 +245,11 @@ class RedisDatabase(object):
                     "type": job.type,
                     "format": job.image_format,
                     "payload": job.payload_raw,
-                    "tag": job.tag,
                     "postprocess": [
                         process.type for process in job.process_list
                     ],
+                    "tag": job.tag,
+                    "metadata": job.metadata,
                     **job.result,
                     **prompts,
                 },
