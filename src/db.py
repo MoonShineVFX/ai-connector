@@ -239,8 +239,7 @@ class RedisDatabase(object):
             elastic_client.index(
                 id=job.id,
                 index=f"{'dev_' if Settings.DEV else ''}"
-                + f"worker_{Settings.WORKER_NAME.lower()}"
-                + f"_{timestamp.strftime('%Y%m%d')}",
+                + f"worker_{timestamp.strftime('%Y%m%d')}",
                 document={
                     "@timestamp": timestamp,
                     "worker": Settings.WORKER_NAME,
