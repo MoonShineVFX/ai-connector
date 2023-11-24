@@ -76,4 +76,9 @@ def upload_r2(
         filename,
     )
 
+    # Save file if dev
+    if Settings.DEV:
+        with open(f"{image_id}.{fmt.lower()}", "wb") as f:
+            images[0].save(f, **save_options)
+
     return f"{Settings.R2_PUBLIC_URL}/{filename}"
