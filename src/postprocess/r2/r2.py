@@ -55,12 +55,12 @@ def upload_r2(
                 "loop": 0,
             }
         )
-        if fmt == "WEBP":
-            save_options.update(
-                {
-                    "minimize_size": True,
-                }
-            )
+        # if fmt == "WEBP":
+        #     save_options.update(
+        #         {
+        #             "minimize_size": True,
+        #         }
+        #     )
 
     # Convert to RGB if JPEG
     if fmt == "JPEG":
