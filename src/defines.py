@@ -20,7 +20,7 @@ JobType = Literal[
     "TXT2IMG", "IMG2IMG", "EXTRA", "INTERROGATE", "CONTROLNET_DETECT"
 ]
 JobStatus = Literal["PENDING", "PROCESSING", "FAILED", "DONE"]
-ImageFormat = Literal["JPEG", "PNG", "WEBP", "WEBP_LOSSLESS", "GIF"]
+ImageFormat = Literal["JPEG", "PNG", "WEBP", "WEBP_LOSSLESS", "GIF", "MP4"]
 
 
 @dataclass

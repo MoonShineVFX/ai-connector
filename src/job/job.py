@@ -82,6 +82,7 @@ class Job:
                 pass
             upload_args = {
                 "duration": int(1000 / fps),
+                "fps": fps,
             }
             logger.debug(f"AnimateDiff detected, using {fps} FPS for upload")
         self.process_list.append(PostProcess(type="UPLOAD", args=upload_args))

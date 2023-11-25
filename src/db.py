@@ -258,7 +258,6 @@ class RedisDatabase(object):
             )
         except Exception as e:
             logger.error(f"Failed to log to elastic: {job.id}")
-            logger.error(traceback.format_exc())
 
     def flush_queue(self):
         self.__db.delete(self.__queue_worker_key)

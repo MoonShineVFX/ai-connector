@@ -48,33 +48,47 @@ def postprocess(
 
         # Loop back process
         elif process.type == "LETTERBOX":
-            new_image = letterbox(this_images[0])
+            new_image, image_size = letterbox(this_images[0])
             letterbox_url = upload_r2(
                 [new_image],
                 image_id + "_letterbox",
                 fmt=image_format,
             )
             dump_result("letterboxes", letterbox_url, True, True)
+            dump_result("letterboxes_sizes", image_size, True, True)
 
         # One way process
         elif process.type == "UPLOAD":
-            image_url = upload_r2(
+            image_url, image_size = upload_r2(
                 this_images,
                 image_id,
                 fmt=image_format,
                 **args,
             )
             dump_result("images", image_url, True, False)
+            dump_result("images_sizes", image_size, True, False)
 
             # upload first frame if animation for preview
             if len(this_images) > 1:
-                image_url = upload_r2(
+                image_url, static_size = upload_r2(
                     [this_images[0]],
                     image_id + "_s",
                     fmt=image_format,
                     **args,
                 )
                 dump_result("statics", image_url, True, False)
+                dump_result("statics_sizes", static_size, True, False)
+
+            # upload mp4 if animation and is webp, use mp4 for compatibility
+            if len(this_images) > 1 and image_format == "WEBP":
+                video_url, video_size = upload_r2(
+                    this_images,
+                    image_id,
+                    fmt="MP4",
+                    **args,
+                )
+                dump_result("videos", video_url, True, False)
+                dump_result("videos_sizes", video_size, True, False)
 
         # One way process
         elif process.type == "NSFW_DETECTION":

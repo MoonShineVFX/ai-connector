@@ -4,6 +4,9 @@ from defines import Settings
 from loguru import logger
 from typing import List
 import boto3
+import imageio.v3 as imageio
+import numpy as np
+from pathlib import Path
 
 
 r2_client = boto3.client(
@@ -19,6 +22,7 @@ def upload_r2(
     fmt: str = "WEBP",
     duration: int = 125,
     resize: int | None = None,
+    fps: int = 8,
 ):
     # Check lossless
     is_lossless = fmt == "WEBP_LOSSLESS"
@@ -28,11 +32,12 @@ def upload_r2(
     # Check sequence
     is_sequence = len(images) > 1
     if is_sequence:
-        fmt = "GIF" if fmt != "WEBP" else "WEBP"
+        # Default to GIF if not specified, for moonshot
+        fmt = "GIF" if fmt not in ["WEBP", "MP4"] else fmt
 
     filename = f"{'dev/' if Settings.DEV else ''}{image_id}.{fmt.lower()}"
 
-    byte_io = BytesIO()
+    bytes_io = BytesIO()
     save_options = {
         "format": fmt,
         "lossless": is_lossless,
@@ -55,30 +60,58 @@ def upload_r2(
                 "loop": 0,
             }
         )
-        # if fmt == "WEBP":
-        #     save_options.update(
-        #         {
-        #             "minimize_size": True,
-        #         }
-        #     )
 
     # Convert to RGB if JPEG
     if fmt == "JPEG":
         images[0] = images[0].convert("RGB")
 
-    images[0].save(byte_io, **save_options)
-    byte_io.seek(0)
+    # Pillow save
+    if fmt != "MP4":
+        images[0].save(bytes_io, **save_options)
+    else:
+        # imageio save
+        imageio.imwrite(
+            bytes_io,
+            [np.array(image) for image in images],
+            format_hint=".mp4",
+            plugin="pyav",
+            fps=fps,
+            codec="h264",
+            out_pixel_format="yuv420p",
+        )
 
-    logger.debug(f"Uploading image to R2: {filename}")
+    bytes_io.seek(0)
+    size = bytes_io.getbuffer().nbytes
+
+    # Upload to R2
+    logger.debug(
+        f"Uploading resource to R2: {filename} ({size / 1024 / 1024:.2f}MB)"
+    )
     r2_client.upload_fileobj(
-        byte_io,
+        bytes_io,
         Settings.R2_BUCKET_NAME,
         filename,
     )
 
     # Save file if dev
     if Settings.DEV:
-        with open(f"{image_id}.{fmt.lower()}", "wb") as f:
-            images[0].save(f, **save_options)
+        dev_path = Path("dev")
+        dev_path.mkdir(exist_ok=True)
 
-    return f"{Settings.R2_PUBLIC_URL}/{filename}"
+        save_file = dev_path / f"{image_id}.{fmt.lower()}"
+
+        if fmt != "MP4":
+            with open(save_file, "wb") as f:
+                images[0].save(f, **save_options)
+        else:
+            imageio.imwrite(
+                save_file,
+                [np.array(image) for image in images],
+                format_hint=".mp4",
+                plugin="pyav",
+                fps=fps,
+                codec="h264",
+                out_pixel_format="yuv420p",
+            )
+
+    return f"{Settings.R2_PUBLIC_URL}/{filename}", size
