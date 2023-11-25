@@ -98,6 +98,6 @@ def postprocess(
         # One way process
         elif process.type == "BLURHASH":
             blurhash = encode_blurhash(this_images[0])
-            dump_result("blurhashes", blurhash, True, True)
+            dump_result("blurhashes", blurhash, True, False)
 
         logger.debug(f"Done in {perf_counter() - time_start:.3f}s")
