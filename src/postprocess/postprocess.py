@@ -48,14 +48,14 @@ def postprocess(
 
         # Loop back process
         elif process.type == "LETTERBOX":
-            new_image, image_size = letterbox(this_images[0])
-            letterbox_url = upload_r2(
+            new_image = letterbox(this_images[0])
+            letterbox_url, letterbox_size = upload_r2(
                 [new_image],
                 image_id + "_letterbox",
                 fmt=image_format,
             )
             dump_result("letterboxes", letterbox_url, True, True)
-            dump_result("letterboxes_sizes", image_size, True, True)
+            dump_result("letterboxes_sizes", letterbox_size, True, True)
 
         # One way process
         elif process.type == "UPLOAD":

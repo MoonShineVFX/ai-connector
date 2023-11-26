@@ -23,7 +23,7 @@ def upload_r2(
     duration: int = 125,
     resize: int | None = None,
     fps: int = 8,
-):
+) -> tuple[str, int]:
     # Check lossless
     is_lossless = fmt == "WEBP_LOSSLESS"
     if fmt == "WEBP_LOSSLESS":
