@@ -137,7 +137,18 @@ class Job:
 
             # If using AnimateDiff, put all images into one item
             if self.is_using_animate_diff():
-                self.generate_images = [api_result.images]
+                # extract controlnet images
+                controlnet_count = self.get_controlnet_count()
+                if controlnet_count > 0:
+                    # get controlnet images from images end
+                    controlnet_images = api_result.images[-controlnet_count:]
+                    animate_images = api_result.images[:-controlnet_count]
+                    self.generate_images = [
+                        animate_images,
+                        *controlnet_images,
+                    ]
+                else:
+                    self.generate_images = [api_result.images]
             else:
                 self.generate_images = api_result.images
 
@@ -161,6 +172,12 @@ class Job:
             return is_animatediff is True
         except:
             return False
+
+    def get_controlnet_count(self) -> int:
+        try:
+            return len(self.payload["controlnet_units"])
+        except:
+            return 0
 
     def prune_info(self, info: dict):
         info.pop("all_prompts", None)

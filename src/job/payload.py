@@ -101,6 +101,5 @@ def normalize_payload(payload: dict):
             payload["override_settings"][
                 "always_discard_next_to_last_sigma"
             ] = False
-            # payload["override_settings"]["animatediff_webp_quality"] = 90
     except:
         pass
