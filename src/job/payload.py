@@ -94,12 +94,21 @@ def normalize_payload(payload: dict):
                 "PNG",
             ]
 
+            # Try to set optimize settings but don't touch if it's already set
             if "override_settings" not in payload:
                 payload["override_settings"] = {}
-            payload["override_settings"]["pad_cond_uncond"] = True
-            payload["override_settings"]["batch_cond_uncond"] = True
-            payload["override_settings"][
+            override_settings = payload["override_settings"]
+            override_settings["pad_cond_uncond"] = override_settings.get(
+                "pad_cond_uncond", True
+            )
+            override_settings["batch_cond_uncond"] = override_settings.get(
+                "batch_cond_uncond", True
+            )
+            override_settings[
                 "always_discard_next_to_last_sigma"
-            ] = False
+            ] = override_settings.get(
+                "always_discard_next_to_last_sigma", False
+            )
+
     except:
         pass
