@@ -148,10 +148,13 @@ class WebUIApi:
     ):
         if baseurl is None:
             if use_https:
-                baseurl = f"https://{host}:{port}/sdapi/v1"
+                rooturl = f"https://{host}:{port}"
+                baseurl = f"{rooturl}/sdapi/v1"
             else:
-                baseurl = f"http://{host}:{port}/sdapi/v1"
+                rooturl = f"http://{host}:{port}"
+                baseurl = f"{rooturl}/sdapi/v1"
 
+        self.rooturl = rooturl
         self.baseurl = baseurl
         self.default_sampler = sampler
         self.default_steps = steps
@@ -633,6 +636,16 @@ class WebUIApi:
 
         response = self.session.post(
             url=f"{self.baseurl}/interrogate", json=payload
+        )
+        return self._to_api_result(response)
+
+    def promptgen(self, startingText: str = "", generateType: str = "normal"):
+        payload = {
+            "startingText": startingText,
+            "generateType": generateType,
+        }
+        response = self.session.post(
+            url=f"{self.rooturl}/moonland/promptgen", json=payload
         )
         return self._to_api_result(response)
 

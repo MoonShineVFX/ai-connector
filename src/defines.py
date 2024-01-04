@@ -17,7 +17,12 @@ CommandType = Literal[
 ]
 
 JobType = Literal[
-    "TXT2IMG", "IMG2IMG", "EXTRA", "INTERROGATE", "CONTROLNET_DETECT"
+    "TXT2IMG",
+    "IMG2IMG",
+    "EXTRA",
+    "INTERROGATE",
+    "CONTROLNET_DETECT",
+    "PROMPTGEN",
 ]
 JobStatus = Literal["PENDING", "PROCESSING", "FAILED", "DONE"]
 ImageFormat = Literal["JPEG", "PNG", "WEBP", "WEBP_LOSSLESS", "GIF", "MP4"]

@@ -131,6 +131,10 @@ class Job:
                 api_result = api.controlnet_detect(
                     **self.payload,
                 )
+            elif self.type == "PROMPTGEN":
+                api_result = api.promptgen(
+                    **self.payload,
+                )
 
             if api_result is None:
                 raise Exception("No result returned")
