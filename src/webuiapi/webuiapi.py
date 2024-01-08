@@ -62,7 +62,7 @@ class ControlNetUnit:
         processor_res: int = 512,
         threshold_a: float = 64,
         threshold_b: float = 64,
-        guidance: float = 1.0,
+        guidance: float = None,  # deprecated: use guidance_end
         guidance_start: float = 0.0,
         guidance_end: float = 1.0,
         control_mode: int = 0,
@@ -79,7 +79,6 @@ class ControlNetUnit:
         self.processor_res = processor_res
         self.threshold_a = threshold_a
         self.threshold_b = threshold_b
-        self.guidance = guidance
         self.guidance_start = guidance_start
         self.guidance_end = guidance_end
         if guessmode:
@@ -104,7 +103,7 @@ class ControlNetUnit:
             "processor_res": self.processor_res,
             "threshold_a": self.threshold_a,
             "threshold_b": self.threshold_b,
-            "guidance": self.guidance,
+            "guidance": self.guidance_end,
             "guidance_start": self.guidance_start,
             "guidance_end": self.guidance_end,
             "control_mode": self.control_mode,
