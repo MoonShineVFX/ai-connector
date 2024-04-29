@@ -281,6 +281,8 @@ class WebUIApi:
         # 1.6
         refiner_checkpoint=None,
         refiner_switch_at=0,
+        # 1.9
+        scheduler=None,
     ):
         if sampler_index is None:
             sampler_index = self.default_sampler
@@ -336,6 +338,10 @@ class WebUIApi:
             "refiner_checkpoint": refiner_checkpoint,
             "refiner_switch_at": refiner_switch_at,
         }
+
+        # 1.9
+        if scheduler:
+            payload["scheduler"] = scheduler
 
         if controlnet_units and len(controlnet_units) > 0:
             payload["alwayson_scripts"]["ControlNet"] = {
@@ -409,6 +415,8 @@ class WebUIApi:
         # 1.6
         refiner_checkpoint=None,
         refiner_switch_at=0,
+        # 1.9
+        scheduler=None,
     ):
         if sampler_name is None:
             sampler_name = self.default_sampler
@@ -467,6 +475,11 @@ class WebUIApi:
             "refiner_checkpoint": refiner_checkpoint,
             "refiner_switch_at": refiner_switch_at,
         }
+
+        # 1.9
+        if scheduler is not None:
+            payload["scheduler"] = scheduler
+
         if mask_image is not None:
             payload["mask"] = b64_img(mask_image)
 
