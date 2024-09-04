@@ -170,6 +170,8 @@ class ControlNetUnit:
         self.hr_option = hr_option
         self.union_control_type: ControlNetUnionControlType = (
             ControlNetUnionControlType.from_str(union_control_type)
+            if union_control_type
+            else ControlNetUnionControlType.UNKNOWN
         )
 
     def to_dict(self):
