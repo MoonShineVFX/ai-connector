@@ -49,6 +49,72 @@ class WebUIApiResult:
         return self.images[0]
 
 
+class ControlNetUnionControlType(Enum):
+    """
+    ControlNet control type for ControlNet union model.
+    https://github.com/xinsir6/ControlNetPlus/tree/main
+    """
+
+    OPENPOSE = "OpenPose"
+    DEPTH = "Depth"
+    # hed/pidi/scribble/ted
+    SOFT_EDGE = "Soft Edge"
+    # canny/lineart/anime_lineart/mlsd
+    HARD_EDGE = "Hard Edge"
+    NORMAL_MAP = "Normal Map"
+    SEGMENTATION = "Segmentation"
+    TILE = "Tile"
+    INPAINT = "Inpaint"
+
+    UNKNOWN = "Unknown"
+
+    @staticmethod
+    def all_tags() -> List[str]:
+        """Tags can be handled by union ControlNet"""
+        return [
+            "openpose",
+            "depth",
+            "softedge",
+            "scribble",
+            "canny",
+            "lineart",
+            "mlsd",
+            "normalmap",
+            "segmentation",
+            "inpaint",
+            "tile",
+        ]
+
+    @staticmethod
+    def from_str(s: str):
+        s = s.lower()
+
+        if s == "openpose":
+            return ControlNetUnionControlType.OPENPOSE
+        elif s == "depth":
+            return ControlNetUnionControlType.DEPTH
+        elif s in ["scribble", "softedge"]:
+            return ControlNetUnionControlType.SOFT_EDGE
+        elif s in ["canny", "lineart", "mlsd"]:
+            return ControlNetUnionControlType.HARD_EDGE
+        elif s == "normal":
+            return ControlNetUnionControlType.NORMAL_MAP
+        elif s == "segmentation":
+            return ControlNetUnionControlType.SEGMENTATION
+        elif s in ["tile", "blur"]:
+            return ControlNetUnionControlType.TILE
+        elif s == "inpaint":
+            return ControlNetUnionControlType.INPAINT
+
+        return ControlNetUnionControlType.UNKNOWN
+
+    def int_value(self) -> int:
+        if self == ControlNetUnionControlType.UNKNOWN:
+            raise ValueError("Unknown control type cannot be encoded.")
+
+        return list(ControlNetUnionControlType).index(self)
+
+
 class ControlNetUnit:
     def __init__(
         self,
@@ -58,7 +124,7 @@ class ControlNetUnit:
         model: str = "None",
         weight: float = 1.0,
         resize_mode: str = "Resize and Fill",
-        lowvram: bool = False,
+        low_vram: bool = False,
         processor_res: int = 512,
         threshold_a: float = 64,
         threshold_b: float = 64,
@@ -69,6 +135,7 @@ class ControlNetUnit:
         guessmode: int = None,  # deprecated: use control_mode
         enabled: bool = True,
         hr_option: str = "Both",  # Both, Low res only, High res only
+        union_control_type: str = None,  # Moonland Type
     ):
         self.input_image = input_image
         self.mask = mask
@@ -76,7 +143,7 @@ class ControlNetUnit:
         self.model = model
         self.weight = weight
         self.resize_mode = resize_mode
-        self.lowvram = lowvram
+        self.low_vram = low_vram
         self.processor_res = processor_res
         self.threshold_a = threshold_a
         self.threshold_b = threshold_b
@@ -101,16 +168,19 @@ class ControlNetUnit:
         self.pixel_perfect = pixel_perfect
         self.enabled = enabled
         self.hr_option = hr_option
+        self.union_control_type: ControlNetUnionControlType = (
+            ControlNetUnionControlType.from_str(union_control_type)
+        )
 
     def to_dict(self):
-        return {
+        payload = {
             "image": raw_b64_img(self.input_image) if self.input_image else "",
             "mask": raw_b64_img(self.mask) if self.mask is not None else None,
             "module": self.module,
             "model": self.model,
             "weight": self.weight,
             "resize_mode": self.resize_mode,
-            "lowvram": self.lowvram,
+            "low_vram": self.low_vram,
             "processor_res": self.processor_res,
             "threshold_a": self.threshold_a,
             "threshold_b": self.threshold_b,
@@ -121,6 +191,11 @@ class ControlNetUnit:
             "hr_option": self.hr_option,
             "enabled": self.enabled,
         }
+
+        if self.union_control_type != ControlNetUnionControlType.UNKNOWN:
+            payload["union_control_type"] = self.union_control_type.value
+
+        return payload
 
 
 def b64_img(image: Image) -> str:
