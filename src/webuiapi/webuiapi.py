@@ -58,7 +58,7 @@ class ControlNetUnit:
         model: str = "None",
         weight: float = 1.0,
         resize_mode: str = "Resize and Fill",
-        low_vram: bool = False,
+        lowvram: bool = False,
         processor_res: int = 512,
         threshold_a: float = 64,
         threshold_b: float = 64,
@@ -76,7 +76,7 @@ class ControlNetUnit:
         self.model = model
         self.weight = weight
         self.resize_mode = resize_mode
-        self.low_vram = low_vram
+        self.lowvram = lowvram
         self.processor_res = processor_res
         self.threshold_a = threshold_a
         self.threshold_b = threshold_b
@@ -110,7 +110,7 @@ class ControlNetUnit:
             "model": self.model,
             "weight": self.weight,
             "resize_mode": self.resize_mode,
-            "low_vram": self.low_vram,
+            "lowvram": self.lowvram,
             "processor_res": self.processor_res,
             "threshold_a": self.threshold_a,
             "threshold_b": self.threshold_b,
