@@ -215,29 +215,32 @@ class RedisDatabase(object):
             },
         )
 
-        # Log to elastic
-        self.log_job(job, now)
-
         # Add to meili
         Meili.add(job)
 
+        # Log to elastic
+        self.log_job(job, now)
+
     def log_job(self, job: Job, timestamp: datetime):
+        this_payload_raw = job.payload_raw.copy()
+        this_result = job.result.copy()
+
         # move prompt from payload
         prompts = {}
-        if "prompt" in job.payload_raw:
-            prompts["prompt"] = job.payload_raw["prompt"]
-            del job.payload_raw["prompt"]
-        if "negative_prompt" in job.payload_raw:
-            prompts["negative_prompt"] = job.payload_raw["negative_prompt"]
-            del job.payload_raw["negative_prompt"]
+        if "prompt" in this_payload_raw:
+            prompts["prompt"] = this_payload_raw["prompt"]
+            del this_payload_raw["prompt"]
+        if "negative_prompt" in this_payload_raw:
+            prompts["negative_prompt"] = this_payload_raw["negative_prompt"]
+            del this_payload_raw["negative_prompt"]
 
         # remove prompts from result
-        if "info" in job.result:
-            job.result["info"].pop("prompt", None)
-            job.result["info"].pop("negative_prompt", None)
+        if "info" in this_result:
+            this_result["info"].pop("prompt", None)
+            this_result["info"].pop("negative_prompt", None)
 
             # remove infotexts
-            job.result["info"].pop("infotexts", None)
+            this_result["info"].pop("infotexts", None)
 
         try:
             elastic_client.index(
@@ -250,13 +253,13 @@ class RedisDatabase(object):
                     "status": job.status,
                     "type": job.type,
                     "format": job.image_format,
-                    "payload": job.payload_raw,
+                    "payload": this_payload_raw,
                     "postprocess": [
                         process.type for process in job.process_list
                     ],
                     "tag": job.tag,
                     "metadata": job.metadata,
-                    **job.result,
+                    **this_result,
                     **prompts,
                 },
             )
