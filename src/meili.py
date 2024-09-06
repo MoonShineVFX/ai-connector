@@ -39,7 +39,7 @@ index = client.index(
 class Meili:
     @staticmethod
     def add(job: Job):
-        if job.status != "DONE" or job.type not in ["TXT2IMG", "IMG2IMG"]:
+        if job.status != "DONE" or job.type != "TXT2IMG":
             return
 
         # Validate job
