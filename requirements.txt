@@ -15,5 +15,5 @@ elasticsearch==8.10.1
 boto3==1.28.71
 imageio==2.33.0
 av==11.0.0
-pydantic==2.8.2
 meilisearch==0.31.5
+pydantic
