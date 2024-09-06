@@ -10,8 +10,6 @@ from defines import Settings
 
 # Pydantic models
 class InfoModel(BaseModel):
-    prompt: str
-    negative_prompt: str
     sd_model_name: str
 
 
@@ -24,6 +22,8 @@ class MeiliJobInputSchema(BaseModel):
     id: str
     created_at: datetime
     result: ResultModel
+    prompt: str
+    negative_prompt: str
 
 
 # MeiliSearch client
@@ -44,22 +44,26 @@ class Meili:
 
         # Validate job
         try:
-            input = MeiliJobInputSchema(
-                id=job.id, created_at=job.create_time, result=job.result
+            parsed_input = MeiliJobInputSchema(
+                id=job.id,
+                created_at=job.create_time,
+                result=job.result,
+                prompt=job.payload_raw.get("prompt", ""),
+                negative_prompt=job.payload_raw.get("negative_prompt", ""),
             )
-            if len(input.result.images) == 0:
+            if len(parsed_input.result.images) == 0:
                 return
             index.add_documents(
                 [
                     {
-                        "id": input.id,
-                        "created_at": input.created_at,
-                        "prompt": input.result.info.prompt,
-                        "negative_prompt": input.result.info.negative_prompt,
-                        "model": input.result.info.sd_model_name,
-                        "image": input.result.images[0],
+                        "id": parsed_input.id,
+                        "created_at": parsed_input.created_at,
+                        "prompt": parsed_input.prompt,
+                        "negative_prompt": parsed_input.negative_prompt,
+                        "model": parsed_input.result.info.sd_model_name,
+                        "image": parsed_input.result.images[0],
                         "created_at_timestamp": round(
-                            input.created_at.timestamp()
+                            parsed_input.created_at.timestamp()
                         ),
                     }
                 ]
