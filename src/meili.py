@@ -53,11 +53,20 @@ class Meili:
             )
             if len(parsed_input.result.images) == 0:
                 return
+
+            # offset create at 8 hours
+            parsed_input.created_at = parsed_input.created_at.replace(
+                tzinfo=None
+            )
+            parsed_input.created_at = parsed_input.created_at.replace(
+                hour=parsed_input.created_at.hour + 8
+            )
+
             index.add_documents(
                 [
                     {
                         "id": parsed_input.id,
-                        "created_at": parsed_input.created_at,
+                        "created_at": parsed_input.created_at.isoformat(),
                         "prompt": parsed_input.prompt,
                         "negative_prompt": parsed_input.negative_prompt,
                         "model": parsed_input.result.info.sd_model_name,
