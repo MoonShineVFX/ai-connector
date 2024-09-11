@@ -52,7 +52,10 @@ class Settings:
         + " | v:"
         + os.environ.get("VERSION", "unknown")
     )
+    A1111_HOST = os.environ.get("A1111_HOST", "localhost")
     A1111_PORT = os.environ.get("A1111_PORT", 7860)
+    FORGE_HOST = os.environ.get("FORGE_HOST", "localhost")
+    FORGE_PORT = os.environ.get("FORGE_PORT", None)
     ELASTIC_HOST = os.environ.get("ELASTIC_HOST", None)
     ELASTIC_AUTH_HEADER = os.environ.get("ELASTIC_AUTH_HEADER", None)
     ELASTIC_CLOUD_ID = os.environ.get("ELASTIC_CLOUD_ID", None)

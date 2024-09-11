@@ -1,4 +1,4 @@
-from job import api
+from job import api, forge_api
 from loguru import logger
 from time import sleep
 from db import RedisDatabase
@@ -7,6 +7,8 @@ from db import RedisDatabase
 def check_webui_alive():
     try:
         api.get_queue_status()
+        if forge_api is not None:
+            forge_api.get_queue_status()
         return True
 
     except Exception as e:
@@ -18,6 +20,8 @@ def restart_webui(db: RedisDatabase):
 
     try:
         api.restart_server()
+        if forge_api is not None:
+            forge_api.restart_server()
     except:
         pass
 

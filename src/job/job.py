@@ -17,7 +17,12 @@ from time import perf_counter
 from datetime import datetime, timezone
 
 
-api = webuiapi.WebUIApi(port=Settings.A1111_PORT)
+api = webuiapi.WebUIApi(host=Settings.A1111_HOST, port=Settings.A1111_PORT)
+forge_api = (
+    webuiapi.WebUIApi(host=Settings.FORGE_HOST, port=Settings.FORGE_PORT)
+    if Settings.FORGE_PORT is not None
+    else None
+)
 
 
 class Job:
@@ -111,28 +116,45 @@ class Job:
                     logger.warning(f"Failed to set sd_model first: {e}")
                     pass
 
+            # Get checkpoint type
+            try:
+                sd_model = self.payload["override_settings"][
+                    "sd_model_checkpoint"
+                ]
+                is_checkpoint_flux = sd_model.lower().startswith("flux")
+            except:
+                is_checkpoint_flux = False
+
+            # Assign API client
+            if is_checkpoint_flux:
+                if forge_api is None:
+                    raise Exception("Forge API not available on this worker")
+                this_api = forge_api
+            else:
+                this_api = api
+
             if self.type == "TXT2IMG":
-                api_result = api.txt2img(
+                api_result = this_api.txt2img(
                     **self.payload,
                 )
             elif self.type == "IMG2IMG":
-                api_result = api.img2img(
+                api_result = this_api.img2img(
                     **self.payload,
                 )
             elif self.type == "EXTRA":
-                api_result = api.extra_single_image(
+                api_result = this_api.extra_single_image(
                     **self.payload,
                 )
             elif self.type == "INTERROGATE":
-                api_result = api.interrogate(
+                api_result = this_api.interrogate(
                     **self.payload,
                 )
             elif self.type == "CONTROLNET_DETECT":
-                api_result = api.controlnet_detect(
+                api_result = this_api.controlnet_detect(
                     **self.payload,
                 )
             elif self.type == "PROMPTGEN":
-                api_result = api.promptgen(
+                api_result = this_api.promptgen(
                     **self.payload,
                 )
 

@@ -1,1 +1,1 @@
-from .job import Job, api
+from .job import Job, api, forge_api
