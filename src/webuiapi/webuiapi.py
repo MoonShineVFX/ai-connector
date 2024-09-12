@@ -372,6 +372,8 @@ class WebUIApi:
         refiner_switch_at=0,
         # 1.9
         scheduler=None,
+        # forge
+        distilled_cfg_scale=None,
     ):
         if sampler_index is None:
             sampler_index = self.default_sampler
@@ -438,6 +440,10 @@ class WebUIApi:
             }
         else:
             payload["alwayson_scripts"]["ControlNet"] = {"args": []}
+
+        # forge
+        if distilled_cfg_scale is not None:
+            payload["distilled_cfg_scale"] = distilled_cfg_scale
 
         return self.post_and_get_api_result(
             f"{self.baseurl}/txt2img", payload, use_async
@@ -506,6 +512,8 @@ class WebUIApi:
         refiner_switch_at=0,
         # 1.9
         scheduler=None,
+        # forge
+        distilled_cfg_scale=None,
     ):
         if sampler_name is None:
             sampler_name = self.default_sampler
@@ -578,6 +586,10 @@ class WebUIApi:
             }
         else:
             payload["alwayson_scripts"]["ControlNet"] = {"args": []}
+
+        # forge
+        if distilled_cfg_scale is not None:
+            payload["distilled_cfg_scale"] = distilled_cfg_scale
 
         return self.post_and_get_api_result(
             f"{self.baseurl}/img2img", payload, use_async
