@@ -101,6 +101,8 @@ class Job:
 
         api_result = None
         try:
+            sd_model = None
+
             # If animate diff, set model first
             if self.is_using_animate_diff():
                 try:
@@ -118,9 +120,10 @@ class Job:
 
             # Get checkpoint type
             try:
-                sd_model = self.payload["override_settings"][
-                    "sd_model_checkpoint"
-                ]
+                if sd_model is None:
+                    sd_model = self.payload["override_settings"][
+                        "sd_model_checkpoint"
+                    ]
                 is_checkpoint_flux = sd_model.lower().startswith("flux")
             except:
                 is_checkpoint_flux = False
@@ -130,6 +133,13 @@ class Job:
                 if forge_api is None:
                     raise Exception("Forge API not available on this worker")
                 this_api = forge_api
+
+                # Change model first
+                try:
+                    this_api.set_options({"sd_model_checkpoint": sd_model})
+                except Exception as e:
+                    logger.warning(f"Failed to set sd_model first: {e}")
+                    pass
             else:
                 this_api = api
 
