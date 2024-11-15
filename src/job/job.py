@@ -122,14 +122,17 @@ class Job:
             try:
                 is_checkpoint_flux = False
 
+                # Make sure sd_model is defined
+                if sd_model is None:
+                    sd_model = self.payload["override_settings"][
+                        "sd_model_checkpoint"
+                    ]
+
                 # Check metadata first
                 if self.metadata is not None and "flux" in self.metadata:
                     is_checkpoint_flux = self.metadata["flux"]
                 # Check sd_model
-                elif sd_model is None:
-                    sd_model = self.payload["override_settings"][
-                        "sd_model_checkpoint"
-                    ]
+                else:
                     is_checkpoint_flux = sd_model.lower().startswith("flux")
             except:
                 is_checkpoint_flux = False
