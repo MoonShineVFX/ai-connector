@@ -14,7 +14,6 @@ from job import Job
 import traceback
 from datetime import datetime, timezone
 from elastic import elastic_client
-from meili import Meili
 
 
 class RedisDatabase(object):
@@ -214,9 +213,6 @@ class RedisDatabase(object):
                 "result": result,
             },
         )
-
-        # Add to meili
-        Meili.add(job)
 
         # Log to elastic
         self.log_job(job, now)

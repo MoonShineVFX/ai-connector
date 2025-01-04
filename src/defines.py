@@ -66,8 +66,6 @@ class Settings:
     AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
     AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
     DEV = os.environ.get("DEV", "false").lower() == "true"
-    MEILISEARCH_HOST = os.environ.get("MEILISEARCH_HOST", None)
-    MEILISEARCH_MASTER_KEY = os.environ.get("MEILISEARCH_MASTER_KEY", None)
 
 
 @dataclass
